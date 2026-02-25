@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestió de Verbs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 p-6 text-slate-800">
+
+    <div class="max-w-md mx-auto bg-white p-8 rounded-3xl shadow-lg border border-slate-200">
+        <h2 class="text-2xl font-black mb-6 italic text-indigo-600">AFEGIR VERB</h2>
+        
+        <div class="space-y-4">
+            <input type="text" id="inf" placeholder="Infinitiu" class="w-full border p-3 rounded-xl outline-none">
+            <input type="text" id="ps" placeholder="Past Simple" class="w-full border p-3 rounded-xl outline-none">
+            <input type="text" id="pp" placeholder="Past Participle" class="w-full border p-3 rounded-xl outline-none">
+            <input type="text" id="tr" placeholder="Traducció" class="w-full border p-3 rounded-xl outline-none">
+            
+            <button id="botoGuardar" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold hover:bg-indigo-700 shadow-md">
+                GUARDAR A LA BASE DE DADES
+            </button>
+        </div>
+
+        <p id="estat" class="mt-4 text-center text-sm font-bold text-slate-400">Preparat</p>
+        
+        <div class="mt-8 pt-6 border-t text-center">
+            <a href="index.html" class="text-indigo-600 font-bold hover:underline">← Tornar al joc</a>
+        </div>
+    </div>
+
+    <script>
+        // Primer de tot, provem si el JS s'executa
+        alert("Hola! El fitxer s'ha carregat correctament.");
+
+        const URL = 'https://faatliqxkgscjxgclccf.supabase.co';
+        const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
+        
+        const supabase = window.supabase.createClient(URL, KEY);
+
+        const btn = document.getElementById('botoGuardar');
+
+        btn.onclick = async function() {
+            alert("Has clicat el botó!");
+
+            const i = document.getElementById('inf').value.trim();
+            const s = document.getElementById('ps').value.trim();
+            const p = document.getElementById('pp').value.trim();
+            const t = document.getElementById('tr').value.trim();
+
+            if (!i || !s || !p || !t) {
+                alert("Falten camps!");
+                return;
+            }
+
+            document.getElementById('estat').innerText = "Enviant...";
+
+            try {
+                const { error } = await supabase.from('verbs').insert([
+                    { infinitiu: i, past_simple: s, past_participle: p, traduccio: t }
+                ]);
+
+                if (error) {
+                    alert("Error de Supabase: " + error.message);
+                } else {
+                    alert("S'ha guardat rectament!");
+                    location.reload();
+                }
+            } catch (err) {
+                alert("Error de xarxa: " + err.message);
+            }
+        };
+    </script>
+</body>
+</html>
