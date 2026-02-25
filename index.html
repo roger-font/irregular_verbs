@@ -3,65 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Verbs Irregulars</title>
+    <title>Joc de Verbs Irregulars</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .infinitiv-box { background: linear-gradient(135deg, #4f46e5, #9333ea); color: white; border-radius: 2rem; padding: 3rem; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
-        .option-btn { background: white; border: 2px solid #e2e8f0; padding: 1rem; border-radius: 1rem; font-weight: 700; transition: all 0.2s; width: 100%; color: #334155; margin-bottom: 0.75rem; }
-        .correct { background-color: #10b981 !important; color: white !important; border-color: #10b981 !important; }
-        .incorrect { background-color: #ef4444 !important; color: white !important; border-color: #ef4444 !important; }
-        .progress-bar { height: 8px; background-color: #e2e8f0; border-radius: 4px; overflow: hidden; }
-        #progress-fill { height: 100%; background: #4f46e5; transition: width 0.4s ease; width: 0%; }
-        .loading-overlay { position: fixed; inset: 0; background: white; display: flex; align-items: center; justify-content: center; z-index: 50; }
-    </style>
 </head>
-<body class="p-4 md:p-8">
-    <div id="loader" class="loading-overlay font-bold text-indigo-600 italic text-2xl">Carregant verbs...</div>
+<body class="bg-indigo-50 min-h-screen flex items-center justify-center p-4">
 
-    <div class="max-w-4xl mx-auto">
-        <div class="flex justify-end mb-6">
-            <a href="prova.html" class="bg-slate-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-600 transition-all shadow-md">
-                ⚙️ Gestionar Verbs
-            </a>
-        </div>
+    <div id="joc" class="max-w-md w-full bg-white p-8 rounded-3xl shadow-2xl text-center">
+        <h1 class="text-3xl font-black text-indigo-600 mb-2">VERB MASTER</h1>
+        <p id="progres" class="text-slate-400 text-sm mb-6 italic text-sm">Carregant verbs...</p>
 
-        <div class="flex justify-between items-end mb-4">
-            <h1 class="text-3xl font-black text-slate-800 tracking-tight italic">VERBS<span class="text-indigo-600">PRO</span></h1>
-            <div class="flex gap-6 font-mono text-xl font-bold">
-                <div class="text-emerald-500">✅ <span id="hits">0</span></div>
-                <div class="text-rose-500">❌ <span id="misses">0</span></div>
+        <div id="pantalla-joc" class="hidden">
+            <div class="bg-indigo-600 text-white p-6 rounded-2xl mb-6 shadow-lg">
+                <p class="text-xs uppercase tracking-widest opacity-70 mb-1">Traducció</p>
+                <h2 id="verb-catala" class="text-3xl font-bold">---</h2>
+            </div>
+
+            <div class="space-y-4">
+                <input type="text" id="input-i" placeholder="Infinitiu" class="w-full border-2 p-3 rounded-xl text-center focus:border-indigo-500 outline-none transition-all">
+                <input type="text" id="input-s" placeholder="Past Simple" class="w-full border-2 p-3 rounded-xl text-center focus:border-indigo-500 outline-none transition-all">
+                <input type="text" id="input-p" placeholder="Past Participle" class="w-full border-2 p-3 rounded-xl text-center focus:border-indigo-500 outline-none transition-all">
+                
+                <button onclick="comprovar()" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-black text-lg hover:bg-indigo-700 shadow-md">COMPROVAR</button>
             </div>
         </div>
 
-        <div class="progress-bar mb-10">
-            <div id="progress-fill"></div>
+        <div class="mt-8 pt-6 border-t border-slate-100 flex justify-between items-center text-xs">
+            <button onclick="location.reload()" class="text-slate-400 hover:text-indigo-600">🔄 Reiniciar</button>
+            <a href="prova.html" class="text-slate-400 hover:text-indigo-600 font-bold">⚙️ Gestionar Verbs</a>
         </div>
-
-        <div class="infinitiv-box mb-10">
-            <p class="text-xs uppercase font-bold opacity-70 mb-2 tracking-[0.2em]">Infinitiu</p>
-            <h2 id="target" class="text-6xl font-black capitalize tracking-tight">---</h2>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div id="col-ps"></div>
-            <div id="col-pp"></div>
-            <div id="col-tr"></div>
-        </div>
-
-        <button id="btn-next" onclick="nextVerb()" disabled class="w-full mt-12 bg-slate-200 text-slate-400 py-6 rounded-3xl font-black uppercase text-xl transition-all">
-            Següent Verb
-        </button>
     </div>
 
     <script>
+        // CONFIGURACIÓ SUPABASE (Igual que al panell de gestió)
         const URL = 'https://faatliqxkgscjxgclccf.supabase.co';
-        const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8'; 
+        const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
         const supabase = window.supabase.createClient(URL, KEY);
 
-        let verbs = [];
-        let totesLesTraduccions = [];
+        let llistaVerbs = [];
+        let verbActual = {};
+
+        // 1. ANEM A BUSCAR ELS VERBS A LA BASE DE DADES
+        async function carregarDades() {
+            const { data, error } = await supabase.from('verbs').select('*');
+            
+            if (error || data.length === 0) {
+                document.getElementById('progres').innerText = "⚠️ No hi ha verbs a la base de dades.";
+                return;
+            }
+
+            llistaVerbs = data;
+            document.getElementById('pantalla-joc').classList.remove('hidden');
+            nouVerb();
+        }
+
+        function nouVerb() {
+            verbActual = llistaVerbs[Math.floor(Math.random() * llistaVerbs.length)];
+            document.getElementById('verb-catala').innerText = verbActual.traduccio;
+            document.getElementById('progres').innerText = `Tens ${llistaVerbs.length} verbs disponibles`;
+            
+            // Netejar inputs
+            document.getElementById('input-i').value = '';
+            document.getElementById('input-s').value = '';
+            document.getElementById('input-p').value = '';
+            document.getElementById('input-i').focus();
+        }
+
+        function comprovar() {
+            const i = document.getElementById('input-i').value.trim().toLowerCase();
+            const s = document.getElementById('input-s').value.trim().toLowerCase();
+            const p = document.getElementById('input-p').value.trim().toLowerCase();
+
+            if (i === verbActual.infinitiu.toLowerCase() && 
+                s === verbActual.past_simple.toLowerCase() && 
+                p === verbActual.past_participle.toLowerCase()) {
+                alert("✨ MOLT BÉ! ✨");
+                nouVerb();
+            } else {
+                alert(`❌ Oh! La resposta era:\n${verbActual.infinitiu} - ${verbActual.past_simple} - ${verbActual.past_participle}`);
+            }
+        }
+
+        // Iniciar el joc
+        window.onload = carregarDades;
+    </script>
+</body>
+</html>        let totesLesTraduccions = [];
         let idx = 0;
         let ok = { s: false, p: false, t: false };
 
