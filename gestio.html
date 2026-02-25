@@ -44,81 +44,75 @@
     </div>
 
     <script>
-        const URL = 'https://faatliqxkgscjxgclccf.supabase.co';
-        const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
-        const supabase = window.supabase.createClient(URL, KEY);
+    const URL = 'https://faatliqxkgscjxgclccf.supabase.co';
+    const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
+    const supabase = window.supabase.createClient(URL, KEY);
 
-        async function carregarVerbs() {
-            const { data, error } = await supabase.from('verbs').select('*').order('infinitiu');
-            if (error) return alert("Error: " + error.message);
+    // 1. Confirmem que el script es carrega
+    console.log("Script carregat correctament");
 
-            const tbody = document.getElementById('taula-verbs');
-            tbody.innerHTML = '';
-            
-            data.forEach(v => {
-                tbody.innerHTML += `
-                    <tr class="border-t border-slate-100 hover:bg-slate-50">
-                        <td class="p-4 font-bold text-indigo-600">${v.infinitiu}</td>
-                        <td class="p-4">${v.past_simple}</td>
-                        <td class="p-4">${v.past_participle}</td>
-                        <td class="p-4">${v.traduccio}</td>
-                        <td class="p-4 text-center">
-                            <button onclick="esborrarVerb(${v.id})" class="text-rose-500 hover:text-rose-700 font-bold">❌</button>
-                        </td>
-                    </tr>
-                `;
-            });
+    async function carregarVerbs() {
+        console.log("Intentant carregar dades...");
+        const { data, error } = await supabase.from('verbs').select('*').order('infinitiu');
+        if (error) {
+            console.error("Error carregant:", error);
+            return;
         }
-
-       async function afegirVerb() {
-	alert("Botó premut!"); // <--- Afegeix aquesta línia
-    const i = document.getElementById('in-i').value.trim();
-    const s = document.getElementById('in-s').value.trim();
-    const p = document.getElementById('in-p').value.trim();
-    const t = document.getElementById('in-t').value.trim();
-
-    if (!i || !s || !p || !t) {
-        alert("⚠️ Ei! Falten camps per omplir.");
-        return;
+        const tbody = document.getElementById('taula-verbs');
+        tbody.innerHTML = '';
+        data.forEach(v => {
+            tbody.innerHTML += `
+                <tr class="border-t border-slate-100">
+                    <td class="p-4 font-bold text-indigo-600">${v.infinitiu}</td>
+                    <td class="p-4">${v.past_simple}</td>
+                    <td class="p-4">${v.past_participle}</td>
+                    <td class="p-4">${v.traduccio}</td>
+                    <td class="p-4 text-center">
+                        <button onclick="esborrarVerb(${v.id})" class="text-rose-500 font-bold">❌</button>
+                    </td>
+                </tr>`;
+        });
     }
 
-    try {
-        console.log("Enviant dades...");
-        const { data, error } = await supabase
-            .from('verbs')
-            .insert([{ 
-                infinitiu: i, 
-                past_simple: s, 
-                past_participle: p, 
-                traduccio: t 
-            }])
-            .select(); // Demanem que ens torni la dada per confirmar
+    async function afegirVerb() {
+        console.log("Iniciant afegirVerb...");
+        
+        const i = document.getElementById('in-i').value.trim();
+        const s = document.getElementById('in-s').value.trim();
+        const p = document.getElementById('in-p').value.trim();
+        const t = document.getElementById('in-t').value.trim();
+
+        if (!i || !s || !p || !t) {
+            alert("⚠️ Omple tots els camps, si us plau!");
+            return;
+        }
+
+        const { error } = await supabase.from('verbs').insert([
+            { infinitiu: i, past_simple: s, past_participle: p, traduccio: t }
+        ]);
 
         if (error) {
-            console.error("Error detallat:", error);
-            alert("❌ Supabase diu: " + error.message);
+            alert("❌ Error de Supabase: " + error.message);
         } else {
-            alert("✅ Verb afegit: " + i);
-            // Netejar camps
+            alert("✅ Verb guardat!");
+            // Netejar i recarregar
             document.getElementById('in-i').value = '';
             document.getElementById('in-s').value = '';
             document.getElementById('in-p').value = '';
             document.getElementById('in-t').value = '';
             carregarVerbs();
         }
-    } catch (err) {
-        console.error("Error catastròfic:", err);
-        alert("💥 El codi ha petat: " + err.message);
     }
-}
-        async function esborrarVerb(id) {
-            if (!confirm("Segur que vols esborrar aquest verb?")) return;
-            const { error } = await supabase.from('verbs').delete().eq('id', id);
-            if (error) alert("Error al esborrar");
-            else carregarVerbs();
-        }
 
-        carregarVerbs();
-    </script>
+    async function esborrarVerb(id) {
+        if (!confirm("Vols esborrar-lo?")) return;
+        const { error } = await supabase.from('verbs').delete().eq('id', id);
+        if (error) alert("Error al esborrar");
+        else carregarVerbs();
+    }
+
+    // Executem la càrrega inicial
+    carregarVerbs();
+</script>
 </body>
 </html>
