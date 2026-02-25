@@ -66,104 +66,125 @@
     </div>
 
     <script>
-        const SUPA_URL = 'https://faatliqxkgscjxgclccf.supabase.co';
-        const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
-        const supabase = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+    const SUPA_URL = 'https://faatliqxkgscjxgclccf.supabase.co';
+    const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
+    
+    let supabase;
+    let llistaVerbs = [];
+    let verbActual = {};
+    let streak = 0;
 
-        let llistaVerbs = [];
-        let verbActual = {};
-        let streak = 0; // Variable de la ratxa
+    async function carregarDades() {
+        // Esperem que la llibreria estigui llista
+        if (!window.supabase || !window.supabase.createClient) {
+            setTimeout(carregarDades, 500);
+            return;
+        }
 
-        async function carregarDades() {
+        if (!supabase) {
+            supabase = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+        }
+
+        document.getElementById('progres').innerText = "Buscant verbs...";
+        
+        try {
             const { data, error } = await supabase.from('verbs').select('*');
-            if (error || !data || data.length === 0) {
-                document.getElementById('progres').innerText = "⚠️ Base de dades buida";
+            
+            if (error) throw error;
+
+            if (!data || data.length === 0) {
+                document.getElementById('progres').innerText = "⚠️ La base de dades està buida!";
                 return;
             }
+
             llistaVerbs = data;
             document.getElementById('progres').innerText = `${data.length} verbs disponibles`;
             document.getElementById('pantalla-joc').style.display = 'block';
             nouVerb();
+        } catch (err) {
+            console.error("Error de connexió:", err);
+            document.getElementById('progres').innerText = "❌ Error en carregar les dades.";
         }
+    }
 
-        function nouVerb() {
-            verbActual = llistaVerbs[Math.floor(Math.random() * llistaVerbs.length)];
-            document.getElementById('verb-catala').innerText = verbActual.traduccio;
+    function nouVerb() {
+        verbActual = llistaVerbs[Math.floor(Math.random() * llistaVerbs.length)];
+        document.getElementById('verb-catala').innerText = verbActual.traduccio;
+        
+        ['ans-i', 'ans-s', 'ans-p'].forEach(id => {
+            const el = document.getElementById(id);
+            el.value = '';
+        });
+        document.getElementById('ans-i').focus();
+        actualitzarStreakVisual();
+    }
+
+    function actualitzarStreakVisual() {
+        const container = document.getElementById('streak-container');
+        const count = document.getElementById('streak-count');
+        
+        if (streak > 0) {
+            container.classList.remove('opacity-0', 'translate-y-4');
+            count.innerText = streak;
+            count.classList.remove('streak-bump');
+            void count.offsetWidth; 
+            count.classList.add('streak-bump');
             
-            ['ans-i', 'ans-s', 'ans-p'].forEach(id => document.getElementById(id).value = '');
-            document.getElementById('ans-i').focus();
-            actualitzarStreakVisual();
+            if (streak >= 5) count.className = "font-black text-red-500 text-2xl italic streak-bump";
+            else count.className = "font-black text-orange-500 text-xl italic streak-bump";
+        } else {
+            container.classList.add('opacity-0', 'translate-y-4');
+        }
+    }
+
+    function mostrarAlerta(correcte) {
+        const modal = document.getElementById('modal-alerta');
+        const overlay = document.getElementById('overlay');
+        const titol = document.getElementById('alerta-titol');
+        const msg = document.getElementById('alerta-missatge');
+        const icona = document.getElementById('alerta-icona');
+
+        if (correcte) {
+            streak++;
+            modal.style.borderColor = "#22c55e"; // verd
+            icona.innerText = "✨";
+            titol.innerText = "EXCEL·LENT!";
+            titol.style.color = "#22c55e";
+            msg.innerText = "Molt bé! Portes una ratxa de " + streak + " verbs.";
+        } else {
+            streak = 0;
+            modal.style.borderColor = "#ef4444"; // vermell
+            icona.innerText = "❌";
+            titol.innerText = "OH, NO!";
+            titol.style.color = "#ef4444";
+            msg.innerHTML = `La resposta era:<br><span class="font-black text-slate-800 text-xl italic">${verbActual.infinitiu} - ${verbActual.past_simple} - ${verbActual.past_participle}</span>`;
         }
 
-        function actualitzarStreakVisual() {
-            const container = document.getElementById('streak-container');
-            const count = document.getElementById('streak-count');
-            
-            if (streak > 0) {
-                container.classList.remove('opacity-0', 'translate-y-4');
-                count.innerText = streak;
-                // Efecte de bump quan puja
-                count.classList.remove('streak-bump');
-                void count.offsetWidth; // Truc per reiniciar animació CSS
-                count.classList.add('streak-bump');
-                
-                // Si la ratxa és alta, el foc es torna més vermell
-                if (streak >= 5) count.className = "font-black text-red-500 text-2xl italic streak-bump";
-                else count.className = "font-black text-orange-500 text-xl italic streak-bump";
-            } else {
-                container.classList.add('opacity-0', 'translate-y-4');
-            }
-        }
+        overlay.classList.remove('hidden');
+        modal.classList.remove('hidden');
+        document.getElementById('btn-seguent').focus();
+    }
 
-        function mostrarAlerta(correcte) {
-            const modal = document.getElementById('modal-alerta');
-            const overlay = document.getElementById('overlay');
-            const titol = document.getElementById('alerta-titol');
-            const msg = document.getElementById('alerta-missatge');
-            const icona = document.getElementById('alerta-icona');
+    function tancarAlerta() {
+        document.getElementById('modal-alerta').classList.add('hidden');
+        document.getElementById('overlay').classList.add('hidden');
+        nouVerb();
+    }
 
-            if (correcte) {
-                streak++;
-                modal.classList.add('border-green-500');
-                modal.classList.remove('border-red-500');
-                icona.innerText = "✨";
-                titol.innerText = "EXCEL·LENT!";
-                titol.className = "text-3xl font-black mb-2 italic text-green-500";
-                msg.innerText = "Molt bé! Portes una ratxa de " + streak + " verbs.";
-            } else {
-                streak = 0; // Reiniciem la ratxa si falla
-                modal.classList.add('border-red-500');
-                modal.classList.remove('border-green-500');
-                icona.innerText = "❌";
-                titol.innerText = "OH, NO!";
-                titol.className = "text-3xl font-black mb-2 italic text-red-500";
-                msg.innerHTML = `La resposta era:<br><span class="font-black text-slate-800 text-xl">${verbActual.infinitiu} - ${verbActual.past_simple} - ${verbActual.past_participle}</span>`;
-            }
+    function comprovar() {
+        const i = document.getElementById('ans-i').value.trim().toLowerCase();
+        const s = document.getElementById('ans-s').value.trim().toLowerCase();
+        const p = document.getElementById('ans-p').value.trim().toLowerCase();
 
-            overlay.classList.remove('hidden');
-            modal.classList.remove('hidden');
-            document.getElementById('btn-seguent').focus();
-        }
+        const esCorrecte = (i === verbActual.infinitiu.toLowerCase() && 
+                           s === verbActual.past_simple.toLowerCase() && 
+                           p === verbActual.past_participle.toLowerCase());
+        
+        mostrarAlerta(esCorrecte);
+    }
 
-        function tancarAlerta() {
-            document.getElementById('modal-alerta').classList.add('hidden');
-            document.getElementById('overlay').classList.add('hidden');
-            nouVerb();
-        }
-
-        function comprovar() {
-            const i = document.getElementById('ans-i').value.trim().toLowerCase();
-            const s = document.getElementById('ans-s').value.trim().toLowerCase();
-            const p = document.getElementById('ans-p').value.trim().toLowerCase();
-
-            const esCorrecte = (i === verbActual.infinitiu.toLowerCase() && 
-                               s === verbActual.past_simple.toLowerCase() && 
-                               p === verbActual.past_participle.toLowerCase());
-            
-            mostrarAlerta(esCorrecte);
-        }
-
-        // CONTROL DE TECLAT
+    // Assignació d'esdeveniments un cop la pàgina està llesta
+    window.onload = function() {
         ['ans-i', 'ans-s', 'ans-p'].forEach(id => {
             document.getElementById(id).addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') comprovar();
@@ -172,13 +193,15 @@
 
         document.getElementById('btnComprovar').onclick = comprovar;
         document.getElementById('btn-seguent').onclick = tancarAlerta;
+        
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !document.getElementById('modal-alerta').classList.contains('hidden')) {
                 tancarAlerta();
             }
         });
 
-        window.onload = carregarDades;
-    </script>
+        carregarDades();
+    };
+</script>
 </body>
 </html>
