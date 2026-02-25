@@ -3,87 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Joc de Verbs Irregulars</title>
+    <title>Verb Master - Joc</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        @keyframes popIn {
+            0% { transform: translate(-50%, -60%) scale(0.9); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        .custom-alert { animation: popIn 0.3s ease-out forwards; }
+        
+        /* Animació per quan la ratxa puja */
+        @keyframes bump {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        .streak-bump { animation: bump 0.4s ease-out; }
+    </style>
 </head>
-<body class="bg-indigo-50 min-h-screen flex items-center justify-center p-4">
+<body class="bg-indigo-50 min-h-screen flex items-center justify-center p-4 font-sans text-slate-800">
 
-    <div class="max-w-md w-full bg-white p-8 rounded-3xl shadow-2xl text-center">
-        <h1 class="text-3xl font-black text-indigo-600 mb-2">VERB MASTER</h1>
-        <p id="progres" class="text-slate-400 text-sm mb-6 italic">Iniciant...</p>
+    <div id="overlay" class="fixed inset-0 bg-indigo-900/40 backdrop-blur-sm z-40 hidden"></div>
+    <div id="modal-alerta" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-8 rounded-3xl shadow-2xl z-50 w-[90%] max-w-sm text-center hidden custom-alert border-4">
+        <div id="alerta-icona" class="text-6xl mb-4"></div>
+        <h2 id="alerta-titol" class="text-3xl font-black mb-2 italic"></h2>
+        <p id="alerta-missatge" class="text-slate-600 text-lg leading-relaxed mb-6"></p>
+        <button id="btn-seguent" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-xl hover:bg-indigo-700 shadow-lg transition-all focus:ring-4 focus:ring-indigo-200 outline-none">CONTINUAR</button>
+    </div>
+
+    <div class="max-w-md w-full bg-white p-8 rounded-[3rem] shadow-2xl text-center relative">
+        
+        <div id="streak-container" class="absolute -top-6 left-1/2 -translate-x-1/2 bg-white px-6 py-2 rounded-full shadow-lg border-2 border-orange-100 flex items-center gap-2 transition-all duration-500 opacity-0 translate-y-4">
+            <span class="text-2xl">🔥</span>
+            <span id="streak-count" class="font-black text-orange-500 text-xl italic">0</span>
+            <span class="text-xs font-black text-slate-400 uppercase tracking-tighter">Ratxa</span>
+        </div>
+
+        <h1 class="text-3xl font-black text-indigo-600 mb-2 tracking-tighter italic mt-2">VERB MASTER</h1>
+        <p id="progres" class="text-slate-400 text-[10px] mb-6 font-bold uppercase tracking-widest">Connectant...</p>
 
         <div id="pantalla-joc" style="display: none;">
-            <div class="bg-indigo-600 text-white p-6 rounded-2xl mb-6 shadow-lg">
-                <p class="text-xs uppercase tracking-widest opacity-70 mb-1">Traducció</p>
-                <h2 id="verb-catala" class="text-3xl font-bold italic text-white">---</h2>
+            <div class="bg-indigo-600 text-white p-8 rounded-[2.5rem] mb-8 shadow-xl relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-10 -mt-10 group-hover:scale-110 transition-transform"></div>
+                <p class="text-[10px] uppercase tracking-[0.2em] opacity-70 mb-2 font-black">Traducció</p>
+                <h2 id="verb-catala" class="text-4xl font-black italic tracking-tight">---</h2>
             </div>
 
             <div class="space-y-4">
-                <input type="text" id="ans-i" placeholder="Infinitiu" class="w-full border-2 p-3 rounded-xl text-center outline-none focus:border-indigo-500 transition-all">
-                <input type="text" id="ans-s" placeholder="Past Simple" class="w-full border-2 p-3 rounded-xl text-center outline-none focus:border-indigo-500 transition-all">
-                <input type="text" id="ans-p" placeholder="Past Participle" class="w-full border-2 p-3 rounded-xl text-center outline-none focus:border-indigo-500 transition-all">
+                <input type="text" id="ans-i" tabindex="1" placeholder="Infinitiu" class="w-full border-2 border-slate-100 p-4 rounded-2xl text-center text-xl font-bold outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50/50 transition-all placeholder:text-slate-200 shadow-sm">
+                <input type="text" id="ans-s" tabindex="2" placeholder="Past Simple" class="w-full border-2 border-slate-100 p-4 rounded-2xl text-center text-xl font-bold outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50/50 transition-all placeholder:text-slate-200 shadow-sm">
+                <input type="text" id="ans-p" tabindex="3" placeholder="Past Participle" class="w-full border-2 border-slate-100 p-4 rounded-2xl text-center text-xl font-bold outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50/50 transition-all placeholder:text-slate-200 shadow-sm">
                 
-                <button id="btnComprovar" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-black text-lg hover:bg-indigo-700 shadow-md">COMPROVAR</button>
+                <button id="btnComprovar" tabindex="4" class="w-full bg-indigo-600 text-white py-5 rounded-2xl font-black text-xl hover:bg-indigo-700 shadow-xl shadow-indigo-100 active:scale-[0.98] transition-all outline-none focus:ring-4 focus:ring-indigo-200">COMPROVAR</button>
             </div>
         </div>
 
-        <div class="mt-8 pt-6 border-t border-slate-100 flex justify-between items-center text-xs">
-            <button onclick="location.reload()" class="text-slate-400 hover:text-indigo-600 font-bold italic">🔄 REINICIAR</button>
-            <a href="gestio.html" class="text-indigo-400 hover:text-indigo-600 font-bold uppercase">⚙️ Gestió</a>
+        <div class="mt-10 pt-6 border-t border-slate-50 flex justify-between items-center text-[10px] font-bold text-slate-300 uppercase tracking-widest">
+            <button onclick="location.reload()" class="hover:text-indigo-600 transition-colors">🔄 Reiniciar</button>
+            <a href="gestio.html" class="hover:text-indigo-600 transition-colors underline decoration-2">⚙️ Gestionar Verbs</a>
         </div>
     </div>
 
-   <script>
-    const URL_PRINCIPAL = 'https://faatliqxkgscjxgclccf.supabase.co';
-    const KEY_PRINCIPAL = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
-    const conexioJoc = window.supabase.createClient(URL_PRINCIPAL, KEY_PRINCIPAL);
+    <script>
+        const SUPA_URL = 'https://faatliqxkgscjxgclccf.supabase.co';
+        const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
+        const supabase = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 
-    let totsElsVerbs = [];
-    let verbDePregunta = {};
+        let llistaVerbs = [];
+        let verbActual = {};
+        let streak = 0; // Variable de la ratxa
 
-    async function carregarJoc() {
-        const p = document.getElementById('progres');
-        p.innerText = "Carregant verbs...";
-        
-        const { data, error } = await conexioJoc.from('verbs').select('*');
-        
-        if (error || !data || data.length === 0) {
-            p.innerText = "No hi ha verbs a la base de dades.";
-            return;
+        async function carregarDades() {
+            const { data, error } = await supabase.from('verbs').select('*');
+            if (error || !data || data.length === 0) {
+                document.getElementById('progres').innerText = "⚠️ Base de dades buida";
+                return;
+            }
+            llistaVerbs = data;
+            document.getElementById('progres').innerText = `${data.length} verbs disponibles`;
+            document.getElementById('pantalla-joc').style.display = 'block';
+            nouVerb();
         }
 
-        totsElsVerbs = data;
-        p.innerText = "Tens " + data.length + " verbs per practicar";
-        document.getElementById('pantalla-joc').style.display = 'block';
-        preguntaNova();
-    }
-
-    function preguntaNova() {
-        verbDePregunta = totsElsVerbs[Math.floor(Math.random() * totsElsVerbs.length)];
-        document.getElementById('verb-catala').innerText = verbDePregunta.traduccio;
-        document.getElementById('ans-i').value = '';
-        document.getElementById('ans-s').value = '';
-        document.getElementById('ans-p').value = '';
-        document.getElementById('ans-i').focus();
-    }
-
-    document.getElementById('btnComprovar').onclick = function() {
-        const i = document.getElementById('ans-i').value.trim().toLowerCase();
-        const s = document.getElementById('ans-s').value.trim().toLowerCase();
-        const p = document.getElementById('ans-p').value.trim().toLowerCase();
-
-        if (i === verbDePregunta.infinitiu.toLowerCase() && 
-            s === verbDePregunta.past_simple.toLowerCase() && 
-            p === verbDePregunta.past_participle.toLowerCase()) {
-            alert("⭐️⭐️⭐️⭐️⭐️⭐️⭐️ CORRECTE ⭐️⭐️⭐️⭐️⭐️⭐️⭐️");
-            preguntaNova();
-        } else {
-            alert("💥💥💥💥💥💥💥 INCORRECTE 💥💥💥💥💥💥💥\n " + verbDePregunta.infinitiu + " - " + verbDePregunta.past_simple + " - " + verbDePregunta.past_participle);
+        function nouVerb() {
+            verbActual = llistaVerbs[Math.floor(Math.random() * llistaVerbs.length)];
+            document.getElementById('verb-catala').innerText = verbActual.traduccio;
+            
+            ['ans-i', 'ans-s', 'ans-p'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('ans-i').focus();
+            actualitzarStreakVisual();
         }
-    };
 
-    window.onload = carregarJoc;
-</script>
+        function actualitzarStreakVisual() {
+            const container = document.getElementById('streak-container');
+            const count = document.getElementById('streak-count');
+            
+            if (streak > 0) {
+                container.classList.remove('opacity-0', 'translate-y-4');
+                count.innerText = streak;
+                // Efecte de bump quan puja
+                count.classList.remove('streak-bump');
+                void count.offsetWidth; // Truc per reiniciar animació CSS
+                count.classList.add('streak-bump');
+                
+                // Si la ratxa és alta, el foc es torna més vermell
+                if (streak >= 5) count.className = "font-black text-red-500 text-2xl italic streak-bump";
+                else count.className = "font-black text-orange-500 text-xl italic streak-bump";
+            } else {
+                container.classList.add('opacity-0', 'translate-y-4');
+            }
+        }
+
+        function mostrarAlerta(correcte) {
+            const modal = document.getElementById('modal-alerta');
+            const overlay = document.getElementById('overlay');
+            const titol = document.getElementById('alerta-titol');
+            const msg = document.getElementById('alerta-missatge');
+            const icona = document.getElementById('alerta-icona');
+
+            if (correcte) {
+                streak++;
+                modal.classList.add('border-green-500');
+                modal.classList.remove('border-red-500');
+                icona.innerText = "✨";
+                titol.innerText = "EXCEL·LENT!";
+                titol.className = "text-3xl font-black mb-2 italic text-green-500";
+                msg.innerText = "Molt bé! Portes una ratxa de " + streak + " verbs.";
+            } else {
+                streak = 0; // Reiniciem la ratxa si falla
+                modal.classList.add('border-red-500');
+                modal.classList.remove('border-green-500');
+                icona.innerText = "❌";
+                titol.innerText = "OH, NO!";
+                titol.className = "text-3xl font-black mb-2 italic text-red-500";
+                msg.innerHTML = `La resposta era:<br><span class="font-black text-slate-800 text-xl">${verbActual.infinitiu} - ${verbActual.past_simple} - ${verbActual.past_participle}</span>`;
+            }
+
+            overlay.classList.remove('hidden');
+            modal.classList.remove('hidden');
+            document.getElementById('btn-seguent').focus();
+        }
+
+        function tancarAlerta() {
+            document.getElementById('modal-alerta').classList.add('hidden');
+            document.getElementById('overlay').classList.add('hidden');
+            nouVerb();
+        }
+
+        function comprovar() {
+            const i = document.getElementById('ans-i').value.trim().toLowerCase();
+            const s = document.getElementById('ans-s').value.trim().toLowerCase();
+            const p = document.getElementById('ans-p').value.trim().toLowerCase();
+
+            const esCorrecte = (i === verbActual.infinitiu.toLowerCase() && 
+                               s === verbActual.past_simple.toLowerCase() && 
+                               p === verbActual.past_participle.toLowerCase());
+            
+            mostrarAlerta(esCorrecte);
+        }
+
+        // CONTROL DE TECLAT
+        ['ans-i', 'ans-s', 'ans-p'].forEach(id => {
+            document.getElementById(id).addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') comprovar();
+            });
+        });
+
+        document.getElementById('btnComprovar').onclick = comprovar;
+        document.getElementById('btn-seguent').onclick = tancarAlerta;
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !document.getElementById('modal-alerta').classList.contains('hidden')) {
+                tancarAlerta();
+            }
+        });
+
+        window.onload = carregarDades;
+    </script>
 </body>
 </html>
