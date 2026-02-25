@@ -1,11 +1,79 @@
 <!DOCTYPE html>
-<html>
-<body>
-    <h1>PROVA SUPABASE</h1>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestió de Verbs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-100 p-6">
+
+    <div class="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-lg">
+        <h2 class="text-xl font-bold mb-4 text-indigo-600">Afegir Nou Verb</h2>
+        
+        <div class="space-y-3">
+            <input type="text" id="inf" placeholder="Infinitiu" class="w-full border p-2 rounded">
+            <input type="text" id="ps" placeholder="Past Simple" class="w-full border p-2 rounded">
+            <input type="text" id="pp" placeholder="Past Participle" class="w-full border p-2 rounded">
+            <input type="text" id="tr" placeholder="Traducció" class="w-full border p-2 rounded">
+            
+            <button id="btnGuardar" class="w-full bg-indigo-600 text-white py-3 rounded font-bold">
+                GUARDAR A SUPABASE
+            </button>
+        </div>
+        
+        <p id="missatge" class="mt-4 text-sm text-center text-slate-500 italic">Estat: Esperant...</p>
+        
+        <div class="mt-6 text-center">
+            <a href="index.html" class="text-sm text-indigo-400 underline">Tornar al joc</a>
+        </div>
+    </div>
+
     <script>
-        alert("SOC AQUÍ!");
-        console.log("Provant...");
+        // Verificació inicial
+        console.log("Script carregat");
+
+        const URL = 'https://faatliqxkgscjxgclccf.supabase.co';
+        const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
+        
+        const supabase = window.supabase.createClient(URL, KEY);
+
+        document.getElementById('btnGuardar').onclick = async function() {
+            const i = document.getElementById('inf').value.trim();
+            const s = document.getElementById('ps').value.trim();
+            const p = document.getElementById('pp').value.trim();
+            const t = document.getElementById('tr').value.trim();
+            const msg = document.getElementById('missatge');
+
+            if (!i || !s || !p || !t) {
+                alert("⚠️ Omple tots els camps!");
+                return;
+            }
+
+            msg.innerText = "⏳ Intentant guardar...";
+
+            try {
+                const { error } = await supabase.from('verbs').insert([
+                    { infinitiu: i, past_simple: s, past_participle: p, traduccio: t }
+                ]);
+
+                if (error) {
+                    alert("❌ Error de Supabase: " + error.message);
+                    msg.innerText = "Error: " + error.message;
+                } else {
+                    alert("✅ Verb guardat correctament!");
+                    msg.innerText = "✅ Fet!";
+                    // Netejar camps
+                    document.getElementById('inf').value = '';
+                    document.getElementById('ps').value = '';
+                    document.getElementById('pp').value = '';
+                    document.getElementById('tr').value = '';
+                }
+            } catch (err) {
+                alert("💥 Error de xarxa: " + err.message);
+                msg.innerText = "Error de xarxa";
+            }
+        };
     </script>
 </body>
 </html>
