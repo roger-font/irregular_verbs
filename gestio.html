@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestió de Verbs - Editor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 p-6">
+    <div class="max-w-4xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-2xl font-bold text-slate-800">⚙️ Gestió de Verbs</h1>
+            <a href="index.html" class="text-indigo-600 font-bold hover:underline">← Tornar al joc</a>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8">
+            <h2 class="font-bold mb-4 text-slate-600">Afegir nou verb</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <input type="text" id="in-i" placeholder="Infinitiu" class="border p-2 rounded-lg text-sm">
+                <input type="text" id="in-s" placeholder="Past Simple" class="border p-2 rounded-lg text-sm">
+                <input type="text" id="in-p" placeholder="Past Participle" class="border p-2 rounded-lg text-sm">
+                <input type="text" id="in-t" placeholder="Traducció" class="border p-2 rounded-lg text-sm">
+            </div>
+            <button onclick="afegirVerb()" class="w-full mt-4 bg-indigo-600 text-white py-2 rounded-lg font-bold hover:bg-indigo-700 transition">
+                + Afegir a la Base de Dades
+            </button>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-slate-100 text-slate-600 text-xs uppercase">
+                    <tr>
+                        <th class="p-4">Infinitiu</th>
+                        <th class="p-4">Past Simple</th>
+                        <th class="p-4">Past Participle</th>
+                        <th class="p-4">Traducció</th>
+                        <th class="p-4 text-center">Acció</th>
+                    </tr>
+                </thead>
+                <tbody id="taula-verbs" class="text-sm">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const URL = 'https://faatliqxkgscjxgclccf.supabase.co';
+        const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
+        const supabase = window.supabase.createClient(URL, KEY);
+
+        async function carregarVerbs() {
+            const { data, error } = await supabase.from('verbs').select('*').order('infinitiu');
+            if (error) return alert("Error: " + error.message);
+
+            const tbody = document.getElementById('taula-verbs');
+            tbody.innerHTML = '';
+            
+            data.forEach(v => {
+                tbody.innerHTML += `
+                    <tr class="border-t border-slate-100 hover:bg-slate-50">
+                        <td class="p-4 font-bold text-indigo-600">${v.infinitiu}</td>
+                        <td class="p-4">${v.past_simple}</td>
+                        <td class="p-4">${v.past_participle}</td>
+                        <td class="p-4">${v.traduccio}</td>
+                        <td class="p-4 text-center">
+                            <button onclick="esborrarVerb(${v.id})" class="text-rose-500 hover:text-rose-700 font-bold">❌</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function afegirVerb() {
+            const i = document.getElementById('in-i').value;
+            const s = document.getElementById('in-s').value;
+            const p = document.getElementById('in-p').value;
+            const t = document.getElementById('in-t').value;
+
+            if (!i || !s || !p || !t) return alert("Omple tots els camps!");
+
+            const { error } = await supabase.from('verbs').insert([{ infinitiu: i, past_simple: s, past_participle: p, traduccio: t }]);
+            
+            if (error) alert("Error al guardar: " + error.message);
+            else {
+                document.querySelectorAll('input').forEach(input => input.value = ''); // Neteja
+                carregarVerbs();
+            }
+        }
+
+        async function esborrarVerb(id) {
+            if (!confirm("Segur que vols esborrar aquest verb?")) return;
+            const { error } = await supabase.from('verbs').delete().eq('id', id);
+            if (error) alert("Error al esborrar");
+            else carregarVerbs();
+        }
+
+        carregarVerbs();
+    </script>
+</body>
+</html>

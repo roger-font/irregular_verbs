@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Master Verbs Irregulars</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         .infinitiv-box { background: linear-gradient(135deg, #4f46e5, #9333ea); color: white; border-radius: 2rem; padding: 3rem; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
@@ -13,20 +14,21 @@
         .incorrect { background-color: #ef4444 !important; color: white !important; border-color: #ef4444 !important; }
         .progress-bar { height: 8px; background-color: #e2e8f0; border-radius: 4px; overflow: hidden; }
         #progress-fill { height: 100%; background: #4f46e5; transition: width 0.4s ease; width: 0%; }
+        .loading-overlay { position: fixed; inset: 0; background: white; display: flex; align-items: center; justify-content: center; z-index: 50; }
     </style>
 </head>
 <body class="p-4 md:p-8">
+    <div id="loader" class="loading-overlay font-bold text-indigo-600 italic text-2xl">Carregant verbs...</div>
+
     <div class="max-w-4xl mx-auto">
         <div class="flex justify-end mb-6">
-            <a href="gestio.html" class="bg-slate-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-600 transition-all shadow-md flex items-center gap-2">
-                <span>⚙️</span> Gestionar Verbs
+            <a href="gestio.html" class="bg-slate-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-600 transition-all shadow-md">
+                ⚙️ Gestionar Verbs
             </a>
         </div>
 
         <div class="flex justify-between items-end mb-4">
-            <div>
-                <h1 class="text-3xl font-black text-slate-800 tracking-tight italic">VERBS<span class="text-indigo-600">PRO</span></h1>
-            </div>
+            <h1 class="text-3xl font-black text-slate-800 tracking-tight italic">VERBS<span class="text-indigo-600">PRO</span></h1>
             <div class="flex gap-6 font-mono text-xl font-bold">
                 <div class="text-emerald-500">✅ <span id="hits">0</span></div>
                 <div class="text-rose-500">❌ <span id="misses">0</span></div>
@@ -48,46 +50,52 @@
             <div id="col-tr"></div>
         </div>
 
-        <button id="btn-next" onclick="nextVerb()" disabled class="w-full mt-12 bg-slate-200 text-slate-400 py-6 rounded-3xl font-black uppercase text-xl transition-all cursor-not-allowed">
+        <button id="btn-next" onclick="nextVerb()" disabled class="w-full mt-12 bg-slate-200 text-slate-400 py-6 rounded-3xl font-black uppercase text-xl transition-all">
             Següent Verb
         </button>
     </div>
 
     <script>
-        // Aquests verbs més endavant vindran de Supabase
-        const verbs = [
-            { i: 'be', s: 'was/were', p: 'been', t: 'ser/estar' },
-            { i: 'become', s: 'became', p: 'become', t: 'esdevenir' },
-            { i: 'begin', s: 'began', p: 'begun', t: 'començar' },
-            { i: 'break', s: 'broke', p: 'broken', t: 'trencar' },
-            { i: 'bring', s: 'brought', p: 'brought', t: 'portar' },
-            { i: 'buy', s: 'bought', p: 'bought', t: 'comprar' }
-        ];
+        const URL = 'https://faatliqxkgscjxgclccf.supabase.co';
+        const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8'; 
+        const supabase = window.supabase.createClient(URL, KEY);
 
-        // Creem una llista amb totes les traduccions per fer el joc més difícil
-        const totesLesTraduccions = verbs.map(v => v.t);
-
+        let verbs = [];
+        let totesLesTraduccions = [];
         let idx = 0;
         let ok = { s: false, p: false, t: false };
 
+        async function carregarDades() {
+            const { data, error } = await supabase.from('verbs').select('*');
+            if (error || !data || data.length === 0) {
+                alert("No hi ha verbs a la base de dades. Vés a 'Gestionar'!");
+                return;
+            }
+            verbs = data.sort(() => Math.random() - 0.5);
+            totesLesTraduccions = verbs.map(v => v.traduccio);
+            document.getElementById('loader').style.display = 'none';
+            init();
+        }
+
         function render(id, correct, type, label) {
             const container = document.getElementById(id);
-            container.innerHTML = `<p class="text-center text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">${label}</p>`;
+            container.innerHTML = `<p class="text-center text-[10px] font-black text-slate-400 uppercase mb-4">${label}</p>`;
             
             let opts = [correct];
 
-            // LÒGICA DE TRADUCCIÓ ALEATÒRIA (Punt 3 del teu missatge)
             if (type === 'tr') {
+                // Agafem 3 traduccions aleatòries d'altres verbs (Punt 3)
                 let distractors = totesLesTraduccions.filter(t => t !== correct);
                 distractors = distractors.sort(() => 0.5 - Math.random());
                 opts.push(...distractors.slice(0, 3));
             } else {
-                // Per PS i PP usem distractors genèrics
-                const distractors = ['done', 'been', 'seen', 'taken', 'made', 'gone'];
+                const distractors = ['done', 'been', 'seen', 'taken', 'made', 'gone', 'said'];
                 let dPool = distractors.filter(d => d !== correct).sort(() => 0.5 - Math.random());
                 opts.push(...dPool.slice(0, 3));
             }
 
+            // Si falten opcions (perquè hi ha pocs verbs), farcim amb '---'
+            while(opts.length < 4) opts.push("---");
             opts.sort(() => Math.random() - 0.5);
             
             opts.forEach(txt => {
@@ -124,7 +132,7 @@
             document.getElementById('progress-fill').style.width = (idx / verbs.length) * 100 + '%';
 
             if (idx >= verbs.length) {
-                alert("👑 Has acabat la llista actual!");
+                alert("👑 Felicitats! Has completat tota la teva base de dades.");
                 idx = 0;
                 location.reload();
             }
@@ -134,17 +142,17 @@
         function init() {
             ok = { s: false, p: false, t: false };
             const v = verbs[idx];
-            document.getElementById('target').innerText = v.i;
+            document.getElementById('target').innerText = v.infinitiu;
             const btn = document.getElementById('btn-next');
             btn.disabled = true;
             btn.className = 'w-full mt-12 bg-slate-200 text-slate-400 py-6 rounded-3xl font-black uppercase text-xl cursor-not-allowed';
             
-            render('col-ps', v.s, 's', 'Past Simple');
-            render('col-pp', v.p, 'p', 'Past Participle');
-            render('col-tr', v.t, 't', 'Traducció');
+            render('col-ps', v.past_simple, 's', 'Past Simple');
+            render('col-pp', v.past_participle, 'p', 'Past Participle');
+            render('col-tr', v.traduccio, 't', 'Traducció');
         }
 
-        init();
+        carregarDades();
     </script>
 </body>
 </html>
