@@ -7,11 +7,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-indigo-50 min-h-screen flex items-center justify-center p-4 font-sans">
+<body class="bg-indigo-50 min-h-screen flex items-center justify-center p-4">
 
     <div class="max-w-md w-full bg-white p-8 rounded-3xl shadow-2xl text-center">
         <h1 class="text-3xl font-black text-indigo-600 mb-2">VERB MASTER</h1>
-        <p id="progres" class="text-slate-400 text-sm mb-6 italic">Connectant amb la base de dades...</p>
+        <p id="progres" class="text-slate-400 text-sm mb-6 italic">Iniciant...</p>
 
         <div id="pantalla-joc" style="display: none;">
             <div class="bg-indigo-600 text-white p-6 rounded-2xl mb-6 shadow-lg">
@@ -29,33 +29,35 @@
         </div>
 
         <div class="mt-8 pt-6 border-t border-slate-100 flex justify-between items-center text-xs">
-            <button onclick="location.reload()" class="text-slate-400 hover:text-indigo-600 font-bold">🔄 Reiniciar joc</button>
-            <a href="gestio.html" class="bg-slate-100 text-slate-600 px-3 py-2 rounded-lg hover:bg-slate-200 transition-colors">⚙️ Panell de Control</a>
+            <button onclick="location.reload()" class="text-slate-400 hover:text-indigo-600 font-bold italic">🔄 REINICIAR</button>
+            <a href="gestio.html" class="text-indigo-400 hover:text-indigo-600 font-bold uppercase">⚙️ Gestió</a>
         </div>
     </div>
 
     <script>
-        const URL = 'https://faatliqxkgscjxgclccf.supabase.co';
-        const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
-        const supabase = window.supabase.createClient(URL, KEY);
+        const SUPA_URL = 'https://faatliqxkgscjxgclccf.supabase.co';
+        const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
+        const supabase = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 
         let llistaVerbs = [];
         let verbActual = {};
 
         async function carregarDades() {
+            document.getElementById('progres').innerText = "Connectant amb Supabase...";
             try {
                 const { data, error } = await supabase.from('verbs').select('*');
                 if (error) throw error;
                 if (!data || data.length === 0) {
-                    document.getElementById('progres').innerText = "⚠️ La base de dades està buida. Afegeix verbs al Panell de Control!";
+                    document.getElementById('progres').innerText = "⚠️ Base de dades buida.";
                     return;
                 }
                 llistaVerbs = data;
-                document.getElementById('progres').innerText = `Tens ${data.length} verbs carregats`;
+                document.getElementById('progres').innerText = `Tens ${data.length} verbs per practicar`;
                 document.getElementById('pantalla-joc').style.display = 'block';
                 nouVerb();
             } catch (err) {
-                document.getElementById('progres').innerText = "❌ Error en carregar les dades.";
+                document.getElementById('progres').innerText = "❌ Error en carregar verbs.";
+                console.error(err);
             }
         }
 
@@ -76,10 +78,10 @@
             if (i === verbActual.infinitiu.toLowerCase() && 
                 s === verbActual.past_simple.toLowerCase() && 
                 p === verbActual.past_participle.toLowerCase()) {
-                alert("✨ EXCEL·LENT! ✨");
+                alert("Molt bé!");
                 nouVerb();
             } else {
-                alert(`❌ Resposta incorrecta.\n\nEra: ${verbActual.infinitiu} - ${verbActual.past_simple} - ${verbActual.past_participle}`);
+                alert(`Error!\nEra: ${verbActual.infinitiu} - ${verbActual.past_simple} - ${verbActual.past_participle}`);
             }
         };
 
