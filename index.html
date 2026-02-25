@@ -11,31 +11,30 @@
 
     <div id="joc" class="max-w-md w-full bg-white p-8 rounded-3xl shadow-2xl text-center">
         <h1 class="text-3xl font-black text-indigo-600 mb-2">VERB MASTER</h1>
-        <p id="progres" class="text-slate-400 text-sm mb-6 italic text-sm">Carregant verbs...</p>
+        <p id="progres" class="text-slate-400 text-sm mb-6 italic">Connectant amb la base de dades...</p>
 
-        <div id="pantalla-joc" class="hidden">
+        <div id="pantalla-joc" style="display: none;">
             <div class="bg-indigo-600 text-white p-6 rounded-2xl mb-6 shadow-lg">
-                <p class="text-xs uppercase tracking-widest opacity-70 mb-1">Traducció</p>
-                <h2 id="verb-catala" class="text-3xl font-bold">---</h2>
+                <p class="text-xs uppercase tracking-widest opacity-70 mb-1">Com es diu en anglès?</p>
+                <h2 id="verb-catala" class="text-3xl font-bold italic">---</h2>
             </div>
 
             <div class="space-y-4">
-                <input type="text" id="input-i" placeholder="Infinitiu" class="w-full border-2 p-3 rounded-xl text-center focus:border-indigo-500 outline-none transition-all">
-                <input type="text" id="input-s" placeholder="Past Simple" class="w-full border-2 p-3 rounded-xl text-center focus:border-indigo-500 outline-none transition-all">
-                <input type="text" id="input-p" placeholder="Past Participle" class="w-full border-2 p-3 rounded-xl text-center focus:border-indigo-500 outline-none transition-all">
+                <input type="text" id="ans-i" placeholder="Infinitiu" class="w-full border-2 p-3 rounded-xl text-center outline-none focus:border-indigo-500 transition-all">
+                <input type="text" id="ans-s" placeholder="Past Simple" class="w-full border-2 p-3 rounded-xl text-center outline-none focus:border-indigo-500 transition-all">
+                <input type="text" id="ans-p" placeholder="Past Participle" class="w-full border-2 p-3 rounded-xl text-center outline-none focus:border-indigo-500 transition-all">
                 
-                <button onclick="comprovar()" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-black text-lg hover:bg-indigo-700 shadow-md">COMPROVAR</button>
+                <button id="btnComprovar" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-black text-lg hover:bg-indigo-700 shadow-md">COMPROVAR</button>
             </div>
         </div>
 
         <div class="mt-8 pt-6 border-t border-slate-100 flex justify-between items-center text-xs">
             <button onclick="location.reload()" class="text-slate-400 hover:text-indigo-600">🔄 Reiniciar</button>
-            <a href="prova.html" class="text-slate-400 hover:text-indigo-600 font-bold">⚙️ Gestionar Verbs</a>
+            <a href="panell.html" class="text-slate-400 hover:text-indigo-600 font-bold">⚙️ Gestionar Verbs</a>
         </div>
     </div>
 
     <script>
-        // CONFIGURACIÓ SUPABASE (Igual que al panell de gestió)
         const URL = 'https://faatliqxkgscjxgclccf.supabase.co';
         const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
         const supabase = window.supabase.createClient(URL, KEY);
@@ -43,26 +42,56 @@
         let llistaVerbs = [];
         let verbActual = {};
 
-        // 1. ANEM A BUSCAR ELS VERBS A LA BASE DE DADES
         async function carregarDades() {
-            const { data, error } = await supabase.from('verbs').select('*');
-            
-            if (error || data.length === 0) {
-                document.getElementById('progres').innerText = "⚠️ No hi ha verbs a la base de dades.";
-                return;
-            }
+            try {
+                const { data, error } = await supabase.from('verbs').select('*');
+                
+                if (error) throw error;
 
-            llistaVerbs = data;
-            document.getElementById('pantalla-joc').classList.remove('hidden');
-            nouVerb();
+                if (!data || data.length === 0) {
+                    document.getElementById('progres').innerText = "⚠️ La base de dades està buida. Afegeix verbs primer!";
+                    return;
+                }
+
+                llistaVerbs = data;
+                document.getElementById('progres').innerText = `Tens ${data.length} verbs per aprendre`;
+                document.getElementById('pantalla-joc').style.display = 'block';
+                nouVerb();
+            } catch (err) {
+                document.getElementById('progres').innerText = "❌ Error de connexió.";
+                console.error(err);
+            }
         }
 
         function nouVerb() {
             verbActual = llistaVerbs[Math.floor(Math.random() * llistaVerbs.length)];
             document.getElementById('verb-catala').innerText = verbActual.traduccio;
-            document.getElementById('progres').innerText = `Tens ${llistaVerbs.length} verbs disponibles`;
             
-            // Netejar inputs
+            document.getElementById('ans-i').value = '';
+            document.getElementById('ans-s').value = '';
+            document.getElementById('ans-p').value = '';
+            document.getElementById('ans-i').focus();
+        }
+
+        document.getElementById('btnComprovar').onclick = function() {
+            const i = document.getElementById('ans-i').value.trim().toLowerCase();
+            const s = document.getElementById('ans-s').value.trim().toLowerCase();
+            const p = document.getElementById('ans-p').value.trim().toLowerCase();
+
+            if (i === verbActual.infinitiu.toLowerCase() && 
+                s === verbActual.past_simple.toLowerCase() && 
+                p === verbActual.past_participle.toLowerCase()) {
+                alert("✨ EXCEL·LENT! ✨");
+                nouVerb();
+            } else {
+                alert(`❌ T'has equivocat...\n\nCorrecte: ${verbActual.infinitiu} - ${verbActual.past_simple} - ${verbActual.past_participle}`);
+            }
+        };
+
+        window.onload = carregarDades;
+    </script>
+</body>
+</html>            // Netejar inputs
             document.getElementById('input-i').value = '';
             document.getElementById('input-s').value = '';
             document.getElementById('input-p').value = '';
