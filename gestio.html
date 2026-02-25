@@ -1,44 +1,6 @@
-<!DOCTYPE html>
-<html lang="ca">
-<head>
-    <meta charset="UTF-8">
-    <title>Gestió de Verbs - Panell</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body class="bg-slate-50 p-6 font-sans">
-
-    <div class="max-w-2xl mx-auto">
-        <div class="bg-white p-8 rounded-3xl shadow-lg mb-8 border border-slate-200">
-            <h2 class="text-2xl font-black mb-6 text-indigo-600 italic uppercase">Afegir Nou Verb</h2>
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <input type="text" id="in-i" placeholder="Infinitiu (ex: Go)" class="border-2 p-3 rounded-xl outline-none focus:border-indigo-500">
-                <input type="text" id="in-s" placeholder="Past Simple (ex: Went)" class="border-2 p-3 rounded-xl outline-none focus:border-indigo-500">
-                <input type="text" id="in-p" placeholder="Past Participle (ex: Gone)" class="border-2 p-3 rounded-xl outline-none focus:border-indigo-500">
-                <input type="text" id="in-t" placeholder="Traducció (ex: Anar)" class="border-2 p-3 rounded-xl outline-none focus:border-indigo-500">
-            </div>
-            <button id="btnGuardar" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold hover:bg-indigo-700 shadow-md transition-all">
-                GUARDAR A LA BASE DE DADES
-            </button>
-        </div>
-
-        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-            <h3 class="font-bold mb-4 text-slate-500 uppercase tracking-widest text-sm text-center">Llista de Verbs Actuals</h3>
-            <table class="w-full text-left">
-                <tbody id="taulaVerbs"></tbody>
-            </table>
-        </div>
-
-        <div class="mt-8 text-center">
-            <a href="index.html" class="text-indigo-600 font-bold hover:underline">← Tornar al joc</a>
-        </div>
-    </div>
 <script>
-    // Hem canviat els noms per evitar l'error de "duplicate variable"
     const adrecaProjecte = 'https://faatliqxkgscjxgclccf.supabase.co';
     const clauProjecte = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
-    
-    // Fem servir un nom únic per la variable de connexió
     const motorConexio = window.supabase.createClient(adrecaProjecte, clauProjecte);
 
     async function actualitzarTaula() {
@@ -47,20 +9,35 @@
         const llista = document.getElementById('taulaVerbs');
         llista.innerHTML = '';
         data.forEach(v => {
-            llista.innerHTML += `<tr><td class="py-2"><b>${v.infinitiu}</b></td><td>${v.traduccio}</td></tr>`;
+            llista.innerHTML += `
+                <tr class="border-b hover:bg-slate-50">
+                    <td class="py-3 px-2 font-bold text-indigo-700">${v.infinitiu}</td>
+                    <td class="py-3 px-2 text-slate-600">${v.past_simple}</td>
+                    <td class="py-3 px-2 text-slate-600">${v.past_participle}</td>
+                    <td class="py-3 px-2 italic text-slate-400">${v.traduccio}</td>
+                    <td class="py-3 px-2 text-right">
+                        <button onclick="borrarVerb(${v.id})" class="text-rose-500 font-bold text-xs hover:underline">ELIMINAR</button>
+                    </td>
+                </tr>`;
         });
     }
 
+    window.borrarVerb = async function(id) {
+        if (!confirm("Segur que vols eliminar-lo?")) return;
+        const { error } = await motorConexio.from('verbs').delete().eq('id', id);
+        if (error) alert("No s'ha pogut eliminar");
+        else actualitzarTaula();
+    };
+
     window.onload = function() {
         actualitzarTaula();
-        
         document.getElementById('btnGuardar').onclick = async function() {
             const i = document.getElementById('in-i').value.trim();
             const s = document.getElementById('in-s').value.trim();
             const p = document.getElementById('in-p').value.trim();
             const t = document.getElementById('in-t').value.trim();
 
-            if (!i || !s || !p || !t) return alert("Falten camps");
+            if (!i || !s || !p || !t) return alert("Omple tots els camps!");
 
             const { error } = await motorConexio.from('verbs').insert([{ 
                 infinitiu: i, past_simple: s, past_participle: p, traduccio: t 
@@ -68,12 +45,12 @@
 
             if (error) alert("Error: " + error.message);
             else {
-                alert("Guardat!");
-                location.reload(); // Recarreguem per netejar-ho tot
+                document.getElementById('in-i').value = '';
+                document.getElementById('in-s').value = '';
+                document.getElementById('in-p').value = '';
+                document.getElementById('in-t').value = '';
+                actualitzarTaula();
             }
         };
     };
 </script>
-   
-</body>
-</html>
