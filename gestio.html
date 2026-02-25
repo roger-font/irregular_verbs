@@ -29,21 +29,54 @@
         </div>
     </div>
 
-    <script>
-    console.log("El script ha començat a carregar");
+<script>
+    const URL = 'https://faatliqxkgscjxgclccf.supabase.co';
+    const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
     
-    // Prova de vida 1: Canviar el color del botó immediatament
-    const boto = document.getElementById('botoGuardar');
-    if(boto) {
-        boto.style.border = "5px solid red"; // Això posarà un marc vermell al botó
-        console.log("Botó trobat i marcat amb vermell");
-    } else {
-        console.log("No s'ha trobat cap botó amb ID botoGuardar");
-    }
+    // Creem el client
+    const supabase = window.supabase.createClient(URL, KEY);
 
-    boto.addEventListener('click', () => {
-        alert("ALERTA: El JavaScript funciona! Ara provaré de connectar a Supabase...");
-        // Aquí aniria la resta del codi de Supabase...
+    document.getElementById('botoGuardar').addEventListener('click', async () => {
+        // 1. Agafem els valors
+        const i = document.getElementById('inf').value.trim();
+        const s = document.getElementById('ps').value.trim();
+        const p = document.getElementById('pp').value.trim();
+        const t = document.getElementById('tr').value.trim();
+
+        if (!i || !s || !p || !t) {
+            alert("⚠️ Omple tots els camps abans de guardar.");
+            return;
+        }
+
+        try {
+            console.log("Intentant guardar a Supabase...");
+            
+            // 2. Fem la inserció
+            const { data, error } = await supabase
+                .from('verbs')
+                .insert([{ 
+                    infinitiu: i, 
+                    past_simple: s, 
+                    past_participle: p, 
+                    traduccio: t 
+                }]);
+
+            // 3. Resposta de seguretat
+            if (error) {
+                console.error("Error detallat de Supabase:", error);
+                alert("❌ ERROR DEL SERVIDOR: " + error.message);
+            } else {
+                alert("✅ PERFECTE! El verb '" + i + "' s'ha guardat correctament.");
+                // Netegem els camps
+                document.getElementById('inf').value = '';
+                document.getElementById('ps').value = '';
+                document.getElementById('pp').value = '';
+                document.getElementById('tr').value = '';
+            }
+        } catch (err) {
+            console.error("Error de xarxa:", err);
+            alert("💥 Error de connexió: " + err.message);
+        }
     });
 </script>
 </body>
