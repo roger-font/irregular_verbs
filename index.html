@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Verbs Irregulars</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .infinitiv-box { background: linear-gradient(135deg, #4f46e5, #9333ea); color: white; border-radius: 2rem; padding: 3rem; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .option-btn { background: white; border: 2px solid #e2e8f0; padding: 1rem; border-radius: 1rem; font-weight: 700; transition: all 0.2s; width: 100%; color: #334155; }
+        .option-btn:hover:not(:disabled) { border-color: #818cf8; transform: translateY(-2px); }
+        .correct { background-color: #10b981 !important; color: white !important; border-color: #10b981 !important; transform: scale(1.02); }
+        .incorrect { background-color: #ef4444 !important; color: white !important; border-color: #ef4444 !important; animation: shake 0.3s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .progress-bar { height: 8px; background-color: #e2e8f0; border-radius: 4px; overflow: hidden; }
+        #progress-fill { height: 100%; background: #4f46e5; transition: width 0.4s ease; width: 0%; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="flex justify-between items-end mb-4">
+            <div>
+                <h1 class="text-3xl font-black text-slate-800 tracking-tight">VERBS<span class="text-indigo-600">PRO</span></h1>
+                <p class="text-slate-500 text-sm font-medium">Domina els verbs irregulars anglesos</p>
+            </div>
+            <div class="flex gap-6 font-mono text-xl">
+                <div class="text-emerald-500">✅ <span id="hits">0</span></div>
+                <div class="text-rose-500">❌ <span id="misses">0</span></div>
+            </div>
+        </div>
+
+        <div class="progress-bar mb-10">
+            <div id="progress-fill"></div>
+        </div>
+
+        <div class="infinitiv-box mb-10">
+            <p class="text-xs uppercase font-bold opacity-70 mb-2 tracking-[0.2em]">Infinitiu</p>
+            <h2 id="target" class="text-6xl font-black capitalize tracking-tight">---</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div id="col-ps"></div>
+            <div id="col-pp"></div>
+            <div id="col-tr"></div>
+        </div>
+
+        <button id="btn-next" onclick="nextVerb()" disabled class="w-full mt-12 bg-slate-200 text-slate-400 py-6 rounded-3xl font-black uppercase text-xl transition-all shadow-lg hover:shadow-xl disabled:cursor-not-allowed">
+            Següent Verb
+        </button>
+    </div>
+
+    <script>
+        const verbs = [
+            { i: 'be', s: 'was/were', p: 'been', t: 'ser/estar' },
+            { i: 'become', s: 'became', p: 'become', t: 'esdevenir' },
+            { i: 'begin', s: 'began', p: 'begun', t: 'començar' },
+            { i: 'break', s: 'broke', p: 'broken', t: 'trencar' },
+            { i: 'bring', s: 'brought', p: 'brought', t: 'portar' },
+            { i: 'build', s: 'built', p: 'built', t: 'construir' },
+            { i: 'buy', s: 'bought', p: 'bought', t: 'comprar' },
+            { i: 'choose', s: 'chose', p: 'chosen', t: 'triar' },
+            { i: 'come', s: 'came', p: 'come', t: 'venir' },
+            { i: 'do', s: 'did', p: 'done', t: 'fer' },
+            { i: 'drink', s: 'drank', p: 'drunk', t: 'beure' },
+            { i: 'drive', s: 'drove', p: 'driven', t: 'conduir' },
+            { i: 'eat', s: 'ate', p: 'eaten', t: 'menjar' },
+            { i: 'find', s: 'found', p: 'found', t: 'trobar' },
+            { i: 'get', s: 'got', p: 'got', t: 'aconseguir' },
+            { i: 'give', s: 'gave', p: 'given', t: 'donar' },
+            { i: 'go', s: 'went', p: 'gone', t: 'anar' },
+            { i: 'have', s: 'had', p: 'had', t: 'tenir' },
+            { i: 'know', s: 'knew', p: 'known', t: 'saber' },
+            { i: 'leave', s: 'left', p: 'left', t: 'deixar/marxar' },
+            { i: 'make', s: 'made', p: 'made', t: 'fer/fabricar' },
+            { i: 'say', s: 'said', p: 'said', t: 'dir' },
+            { i: 'see', s: 'saw', p: 'seen', t: 'veure' },
+            { i: 'take', s: 'took', p: 'taken', t: 'agafar' },
+            { i: 'tell', s: 'told', p: 'told', t: 'dir/explicar' }
+        ].sort(() => Math.random() - 0.5); // Barreja els verbs cada vegada que obres el joc
+
+        let idx = 0;
+        let ok = { s: false, p: false, t: false };
+
+        function render(id, correct, type, label) {
+            const container = document.getElementById(id);
+            container.innerHTML = `<p class="text-center text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">${label}</p>`;
+            
+            const distractors = ['done', 'been', 'gone', 'seen', 'taken', 'made', 'come', 'felt'];
+            let opts = [correct];
+            while(opts.length < 4) {
+                let d = distractors[Math.floor(Math.random() * distractors.length)];
+                if(!opts.includes(d)) opts.push(d);
+            }
+            opts.sort();
+            
+            opts.forEach(txt => {
+                const b = document.createElement('button');
+                b.className = 'option-btn mb-3 shadow-sm';
+                b.innerText = txt;
+                b.onclick = () => {
+                    if (ok[type]) return;
+                    if (txt === correct) {
+                        b.classList.add('correct');
+                        ok[type] = true;
+                        checkComplete();
+                    } else {
+                        b.classList.add('incorrect');
+                        document.getElementById('misses').innerText = parseInt(document.getElementById('misses').innerText) + 1;
+                        setTimeout(() => b.classList.remove('incorrect'), 500);
+                    }
+                };
+                container.appendChild(b);
+            });
+        }
+
+        function checkComplete() {
+            if (ok.s && ok.p && ok.t) {
+                const btn = document.getElementById('btn-next');
+                btn.disabled = false;
+                btn.className = 'w-full mt-12 bg-indigo-600 text-white py-6 rounded-3xl font-black uppercase text-xl transition-all shadow-lg hover:bg-indigo-700 cursor-pointer';
+            }
+        }
+
+        function nextVerb() {
+            document.getElementById('hits').innerText = parseInt(document.getElementById('hits').innerText) + 1;
+            idx++;
+            
+            // Actualitzar barra de progrés
+            const progress = (idx / verbs.length) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+
+            if (idx >= verbs.length) {
+                alert("👑 ETS UN MESTRE! Has completat tots els verbs.");
+                idx = 0;
+                location.reload(); // Reinicia el joc
+            }
+            init();
+        }
+
+        function init() {
+            ok = { s: false, p: false, t: false };
+            const v = verbs[idx];
+            document.getElementById('target').innerText = v.i;
+            const btn = document.getElementById('btn-next');
+            btn.disabled = true;
+            btn.className = 'w-full mt-12 bg-slate-200 text-slate-400 py-6 rounded-3xl font-black uppercase text-xl transition-all cursor-not-allowed';
+            
+            render('col-ps', v.s, 's', 'Past Simple');
+            render('col-pp', v.p, 'p', 'Past Participle');
+            render('col-tr', v.t, 't', 'Traducció');
+        }
+
+        init();
+    </script>
+</body>
+</html>
