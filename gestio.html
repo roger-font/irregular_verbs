@@ -28,56 +28,60 @@
             <a href="index.html" class="text-indigo-600 font-bold hover:underline">← Tornar al joc</a>
         </div>
     </div>
-
 <script>
+    // 1. Verificació immediata
+    alert("Pas 1: El script s'està llegint");
+
     const URL = 'https://faatliqxkgscjxgclccf.supabase.co';
     const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
     
-    // Creem el client
-    const supabase = window.supabase.createClient(URL, KEY);
+    // Intentem crear el client de Supabase
+    let supabase;
+    try {
+        supabase = window.supabase.createClient(URL, KEY);
+        console.log("Client creat");
+    } catch (err) {
+        alert("Error creant el client: " + err.message);
+    }
 
-    document.getElementById('botoGuardar').addEventListener('click', async () => {
-        // 1. Agafem els valors
-        const i = document.getElementById('inf').value.trim();
-        const s = document.getElementById('ps').value.trim();
-        const p = document.getElementById('pp').value.trim();
-        const t = document.getElementById('tr').value.trim();
+    // 2. Programem el botó
+    const boto = document.getElementById('botoGuardar');
+    
+    boto.onclick = async function() {
+        alert("Pas 2: Has clicat el botó");
 
-        if (!i || !s || !p || !t) {
-            alert("⚠️ Omple tots els camps abans de guardar.");
+        const val_i = document.getElementById('inf').value.trim();
+        const val_s = document.getElementById('ps').value.trim();
+        const val_p = document.getElementById('pp').value.trim();
+        const val_t = document.getElementById('tr').value.trim();
+
+        if (!val_i || !val_s || !val_p || !val_t) {
+            alert("⚠️ Omple els 4 quadres!");
             return;
         }
 
+        alert("Pas 3: Intentant enviar a la base de dades...");
+
         try {
-            console.log("Intentant guardar a Supabase...");
-            
-            // 2. Fem la inserció
-            const { data, error } = await supabase
+            const { error } = await supabase
                 .from('verbs')
                 .insert([{ 
-                    infinitiu: i, 
-                    past_simple: s, 
-                    past_participle: p, 
-                    traduccio: t 
+                    infinitiu: val_i, 
+                    past_simple: val_s, 
+                    past_participle: val_p, 
+                    traduccio: val_t 
                 }]);
 
-            // 3. Resposta de seguretat
             if (error) {
-                console.error("Error detallat de Supabase:", error);
-                alert("❌ ERROR DEL SERVIDOR: " + error.message);
+                alert("❌ ERROR DE SUPABASE: " + error.message);
             } else {
-                alert("✅ PERFECTE! El verb '" + i + "' s'ha guardat correctament.");
-                // Netegem els camps
-                document.getElementById('inf').value = '';
-                document.getElementById('ps').value = '';
-                document.getElementById('pp').value = '';
-                document.getElementById('tr').value = '';
+                alert("✅ ÈXIT! S'ha guardat el verb: " + val_i);
+                location.reload(); 
             }
-        } catch (err) {
-            console.error("Error de xarxa:", err);
-            alert("💥 Error de connexió: " + err.message);
+        } catch (e) {
+            alert("💥 ERROR CRÍTIC: " + e.message);
         }
-    });
+    };
 </script>
 </body>
 </html>
