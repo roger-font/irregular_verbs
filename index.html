@@ -34,58 +34,56 @@
         </div>
     </div>
 
-    <script>
-        const SUPA_URL = 'https://faatliqxkgscjxgclccf.supabase.co';
-        const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
-        const supabase = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+   <script>
+    const URL_PRINCIPAL = 'https://faatliqxkgscjxgclccf.supabase.co';
+    const KEY_PRINCIPAL = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
+    const conexioJoc = window.supabase.createClient(URL_PRINCIPAL, KEY_PRINCIPAL);
 
-        let llistaVerbs = [];
-        let verbActual = {};
+    let totsElsVerbs = [];
+    let verbDePregunta = {};
 
-        async function carregarDades() {
-            document.getElementById('progres').innerText = "Connectant amb Supabase...";
-            try {
-                const { data, error } = await supabase.from('verbs').select('*');
-                if (error) throw error;
-                if (!data || data.length === 0) {
-                    document.getElementById('progres').innerText = "⚠️ Base de dades buida.";
-                    return;
-                }
-                llistaVerbs = data;
-                document.getElementById('progres').innerText = `Tens ${data.length} verbs per practicar`;
-                document.getElementById('pantalla-joc').style.display = 'block';
-                nouVerb();
-            } catch (err) {
-                document.getElementById('progres').innerText = "❌ Error en carregar verbs.";
-                console.error(err);
-            }
+    async function carregarJoc() {
+        const p = document.getElementById('progres');
+        p.innerText = "Carregant verbs...";
+        
+        const { data, error } = await conexioJoc.from('verbs').select('*');
+        
+        if (error || !data || data.length === 0) {
+            p.innerText = "No hi ha verbs a la base de dades.";
+            return;
         }
 
-        function nouVerb() {
-            verbActual = llistaVerbs[Math.floor(Math.random() * llistaVerbs.length)];
-            document.getElementById('verb-catala').innerText = verbActual.traduccio;
-            document.getElementById('ans-i').value = '';
-            document.getElementById('ans-s').value = '';
-            document.getElementById('ans-p').value = '';
-            document.getElementById('ans-i').focus();
+        totsElsVerbs = data;
+        p.innerText = "Tens " + data.length + " verbs per practicar";
+        document.getElementById('pantalla-joc').style.display = 'block';
+        preguntaNova();
+    }
+
+    function preguntaNova() {
+        verbDePregunta = totsElsVerbs[Math.floor(Math.random() * totsElsVerbs.length)];
+        document.getElementById('verb-catala').innerText = verbDePregunta.traduccio;
+        document.getElementById('ans-i').value = '';
+        document.getElementById('ans-s').value = '';
+        document.getElementById('ans-p').value = '';
+        document.getElementById('ans-i').focus();
+    }
+
+    document.getElementById('btnComprovar').onclick = function() {
+        const i = document.getElementById('ans-i').value.trim().toLowerCase();
+        const s = document.getElementById('ans-s').value.trim().toLowerCase();
+        const p = document.getElementById('ans-p').value.trim().toLowerCase();
+
+        if (i === verbDePregunta.infinitiu.toLowerCase() && 
+            s === verbDePregunta.past_simple.toLowerCase() && 
+            p === verbDePregunta.past_participle.toLowerCase()) {
+            alert("Correcte! 🌟");
+            preguntaNova();
+        } else {
+            alert("T'has equivocat...\nEra: " + verbDePregunta.infinitiu + " - " + verbDePregunta.past_simple + " - " + verbDePregunta.past_participle);
         }
+    };
 
-        document.getElementById('btnComprovar').onclick = function() {
-            const i = document.getElementById('ans-i').value.trim().toLowerCase();
-            const s = document.getElementById('ans-s').value.trim().toLowerCase();
-            const p = document.getElementById('ans-p').value.trim().toLowerCase();
-
-            if (i === verbActual.infinitiu.toLowerCase() && 
-                s === verbActual.past_simple.toLowerCase() && 
-                p === verbActual.past_participle.toLowerCase()) {
-                alert("Molt bé!");
-                nouVerb();
-            } else {
-                alert(`Error!\nEra: ${verbActual.infinitiu} - ${verbActual.past_simple} - ${verbActual.past_participle}`);
-            }
-        };
-
-        window.onload = carregarDades;
-    </script>
+    window.onload = carregarJoc;
+</script>
 </body>
 </html>
