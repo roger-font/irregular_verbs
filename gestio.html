@@ -12,12 +12,12 @@
         <h2 class="text-2xl font-black mb-6 italic text-indigo-600">AFEGIR VERB</h2>
         
         <div class="space-y-4">
-            <input type="text" id="inf" placeholder="Infinitiu (ex: Write)" class="w-full border p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
-            <input type="text" id="ps" placeholder="Past Simple (ex: Wrote)" class="w-full border p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
-            <input type="text" id="pp" placeholder="Past Participle (ex: Written)" class="w-full border p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
-            <input type="text" id="tr" placeholder="Traducció (ex: Escriure)" class="w-full border p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+            <input type="text" id="inf" placeholder="Infinitiu" class="w-full border p-3 rounded-xl outline-none">
+            <input type="text" id="ps" placeholder="Past Simple" class="w-full border p-3 rounded-xl outline-none">
+            <input type="text" id="pp" placeholder="Past Participle" class="w-full border p-3 rounded-xl outline-none">
+            <input type="text" id="tr" placeholder="Traducció" class="w-full border p-3 rounded-xl outline-none">
             
-            <button id="botoGuardar" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-md">
+            <button id="botoGuardar" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold hover:bg-indigo-700 shadow-md">
                 GUARDAR A LA BASE DE DADES
             </button>
         </div>
@@ -28,60 +28,48 @@
             <a href="index.html" class="text-indigo-600 font-bold hover:underline">← Tornar al joc</a>
         </div>
     </div>
-<script>
-    // 1. Verificació immediata
-    alert("Pas 1: El script s'està llegint");
 
-    const URL = 'https://faatliqxkgscjxgclccf.supabase.co';
-    const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
-    
-    // Intentem crear el client de Supabase
-    let supabase;
-    try {
-        supabase = window.supabase.createClient(URL, KEY);
-        console.log("Client creat");
-    } catch (err) {
-        alert("Error creant el client: " + err.message);
-    }
+    <script>
+        // Primer de tot, provem si el JS s'executa
+        alert("Hola! El fitxer s'ha carregat correctament.");
 
-    // 2. Programem el botó
-    const boto = document.getElementById('botoGuardar');
-    
-    boto.onclick = async function() {
-        alert("Pas 2: Has clicat el botó");
+        const URL = 'https://faatliqxkgscjxgclccf.supabase.co';
+        const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
+        
+        const supabase = window.supabase.createClient(URL, KEY);
 
-        const val_i = document.getElementById('inf').value.trim();
-        const val_s = document.getElementById('ps').value.trim();
-        const val_p = document.getElementById('pp').value.trim();
-        const val_t = document.getElementById('tr').value.trim();
+        const btn = document.getElementById('botoGuardar');
 
-        if (!val_i || !val_s || !val_p || !val_t) {
-            alert("⚠️ Omple els 4 quadres!");
-            return;
-        }
+        btn.onclick = async function() {
+            alert("Has clicat el botó!");
 
-        alert("Pas 3: Intentant enviar a la base de dades...");
+            const i = document.getElementById('inf').value.trim();
+            const s = document.getElementById('ps').value.trim();
+            const p = document.getElementById('pp').value.trim();
+            const t = document.getElementById('tr').value.trim();
 
-        try {
-            const { error } = await supabase
-                .from('verbs')
-                .insert([{ 
-                    infinitiu: val_i, 
-                    past_simple: val_s, 
-                    past_participle: val_p, 
-                    traduccio: val_t 
-                }]);
-
-            if (error) {
-                alert("❌ ERROR DE SUPABASE: " + error.message);
-            } else {
-                alert("✅ ÈXIT! S'ha guardat el verb: " + val_i);
-                location.reload(); 
+            if (!i || !s || !p || !t) {
+                alert("Falten camps!");
+                return;
             }
-        } catch (e) {
-            alert("💥 ERROR CRÍTIC: " + e.message);
-        }
-    };
-</script>
+
+            document.getElementById('estat').innerText = "Enviant...";
+
+            try {
+                const { error } = await supabase.from('verbs').insert([
+                    { infinitiu: i, past_simple: s, past_participle: p, traduccio: t }
+                ]);
+
+                if (error) {
+                    alert("Error de Supabase: " + error.message);
+                } else {
+                    alert("S'ha guardat rectament!");
+                    location.reload();
+                }
+            } catch (err) {
+                alert("Error de xarxa: " + err.message);
+            }
+        };
+    </script>
 </body>
 </html>
