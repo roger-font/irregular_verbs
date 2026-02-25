@@ -25,8 +25,7 @@
         <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
             <h3 class="font-bold mb-4 text-slate-500 uppercase tracking-widest text-sm text-center">Llista de Verbs Actuals</h3>
             <table class="w-full text-left">
-                <tbody id="taulaVerbs">
-                    </tbody>
+                <tbody id="taulaVerbs"></tbody>
             </table>
         </div>
 
@@ -36,13 +35,17 @@
     </div>
 
     <script>
-        const URL = 'https://faatliqxkgscjxgclccf.supabase.co';
-        const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
-        const supabase = window.supabase.createClient(URL, KEY);
+        // Aquí només hi ha d'haver UN sol bloc de script
+        const URL_DB = 'https://faatliqxkgscjxgclccf.supabase.co';
+        const KEY_DB = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
+        const supabase = window.supabase.createClient(URL_DB, KEY_DB);
 
         async function carregarLlista() {
             const { data, error } = await supabase.from('verbs').select('*').order('infinitiu', { ascending: true });
-            if (error) return;
+            if (error) {
+                console.error("Error carregar:", error);
+                return;
+            }
             const llista = document.getElementById('taulaVerbs');
             llista.innerHTML = '';
             data.forEach(v => {
@@ -81,7 +84,7 @@
                     infinitiu: i, past_simple: s, past_participle: p, traduccio: t 
                 }]);
 
-                if (error) alert("Error: " + error.message);
+                if (error) alert("Error Supabase: " + error.message);
                 else {
                     alert("✅ Verb guardat!");
                     document.getElementById('in-i').value = '';
