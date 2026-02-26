@@ -28,20 +28,20 @@
         </div>
 
         <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-slate-50 border-b border-slate-100">
-                        <th class="p-4 text-xs font-black text-slate-400 uppercase">Infinitiu</th>
-                        <th class="p-4 text-xs font-black text-slate-400 uppercase">Past Simple</th>
-                        <th class="p-4 text-xs font-black text-slate-400 uppercase">Past Participle</th>
-                        <th class="p-4 text-xs font-black text-slate-400 uppercase">Traducció</th>
-                        <th class="p-4 text-xs font-black text-slate-400 uppercase text-right">Accions</th>
-                    </tr>
-                </thead>
-                <tbody id="taulaVerbs" class="divide-y divide-slate-50">
-                    </tbody>
-            </table>
-        </div>
+    <table class="w-full text-center border-collapse table-fixed">
+        <thead>
+            <tr class="bg-slate-50 border-b border-slate-100">
+                <th class="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Infinitiu</th>
+                <th class="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Past Simple</th>
+                <th class="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Past Participle</th>
+                <th class="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Traducció</th>
+                <th class="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Accions</th>
+            </tr>
+        </thead>
+        <tbody id="taulaVerbs" class="divide-y divide-slate-50">
+            </tbody>
+    </table>
+</div>
     </div>
 
     <script>
@@ -56,27 +56,28 @@
             const supabase = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 
             async function actualitzarTaula() {
-                const { data, error } = await supabase.from('verbs').select('*').order('infinitiu');
-                if (error) return;
-                
-                const tbody = document.getElementById('taulaVerbs');
-                tbody.innerHTML = '';
-                
-                data.forEach(v => {
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-indigo-50/30 transition-colors">
-                            <td class="p-4 text-slate-600 text-lg">${v.infinitiu}</td>
-                            <td class="p-4 text-slate-600">${v.past_simple}</td>
-                            <td class="p-4 text-slate-600">${v.past_participle}</td>
-                            <td class="p-4 text-slate-400">${v.traduccio}</td>
-                            <td class="p-4 text-right space-x-2">
-                                <button onclick="prepararEdicio('${v.id}', '${v.infinitiu}', '${v.past_simple}', '${v.past_participle}', '${v.traduccio}')" class="text-indigo-500 hover:bg-indigo-500 hover:text-white border border-indigo-200 px-3 py-1 rounded-lg text-xs font-bold transition-all uppercase">Editar</button>
-                                <button onclick="borrarVerb(${v.id})" class="text-rose-400 hover:bg-rose-500 hover:text-white border border-rose-100 px-3 py-1 rounded-lg text-xs font-bold transition-all uppercase">Eliminar</button>
-                            </td>
-                        </tr>`;
-                });
-            }
-
+            const { data, error } = await motorConexio.from('verbs').select('*').order('infinitiu');
+            if (error) return;
+    
+            const tbody = document.getElementById('taulaVerbs');
+            tbody.innerHTML = '';
+    
+            data.forEach(v => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-indigo-50/30 transition-colors">
+                        <td class="p-4 font-bold text-slate-700 text-lg">${v.infinitiu}</td>
+                        <td class="p-4 text-slate-600 font-light text-md">${v.past_simple}</td>
+                        <td class="p-4 text-slate-600 font-light text-md">${v.past_participle}</td>
+                        <td class="p-4 italic text-slate-400 font-light text-md">${v.traduccio}</td>
+                        <td class="p-4">
+                            <div class="flex justify-center gap-2">
+                                <button onclick="prepararEdicio('${v.id}', '${v.infinitiu}', '${v.past_simple}', '${v.past_participle}', '${v.traduccio}')" class="text-indigo-500 hover:bg-indigo-500 hover:text-white border border-indigo-100 px-3 py-1 rounded-lg text-[10px] font-bold transition-all uppercase">Editar</button>
+                                <button onclick="borrarVerb(${v.id})" class="text-rose-400 hover:bg-rose-500 hover:text-white border border-rose-50 px-3 py-1 rounded-lg text-[10px] font-bold transition-all uppercase">Eliminar</button>
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+        }
             // FUNCIÓ PER PREPARAR L'EDICIÓ
             window.prepararEdicio = function(id, i, s, p, t) {
                 document.getElementById('edit-id').value = id;
