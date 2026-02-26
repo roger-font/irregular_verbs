@@ -7,58 +7,75 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        @keyframes popIn {
-            0% { transform: translate(-50%, -60%) scale(0.9); opacity: 0; }
-            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        /* Eliminem qualsevol efecte d'enfonsament o ombra predeterminada */
+        input {
+            appearance: none;
+            -webkit-appearance: none;
+            box-shadow: none !important;
+            border-style: solid !important;
         }
-        .custom-alert { animation: popIn 0.3s ease-out forwards; }
+
+        /* Estat Normal: Contorn gris fi, sense ombres */
+        .input-normal {
+            border-color: #f1f5f9; /* slate-100 */
+            background-color: #ffffff;
+        }
+
+        /* Focus Blau: Contorn blau pla quan escrius */
+        .input-normal:focus {
+            outline: none !important;
+            border-color: #6366f1 !important; /* indigo-500 */
+            box-shadow: none !important;
+        }
+
+        /* Estat Error: Contorn vermell pla */
+        .input-error {
+            border-color: #ef4444 !important; /* red-500 */
+            background-color: #fffafb;
+        }
+
+        /* Focus Error: Es manté vermell encara que hi tinguis el cursor */
+        .input-error:focus {
+            outline: none !important;
+            border-color: #ef4444 !important;
+            box-shadow: none !important;
+        }
     </style>
 </head>
 <body class="bg-indigo-50 min-h-screen flex items-center justify-center p-4 font-sans text-slate-700">
 
-    <div id="overlay" class="fixed inset-0 bg-indigo-900/40 backdrop-blur-sm z-40 hidden"></div>
-    <div id="modal-alerta" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-8 rounded-3xl shadow-2xl z-50 w-[90%] max-w-sm text-center hidden custom-alert border-2">
-        <div id="alerta-icona" class="text-5xl mb-4"></div>
-        <h2 id="alerta-titol" class="text-2xl font-medium mb-2 italic"></h2>
-        <p id="alerta-missatge" class="text-slate-500 text-lg mb-6"></p>
-        <button id="btn-seguent" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-medium text-xl hover:bg-indigo-700 outline-none transition-colors">CONTINUAR</button>
-    </div>
-
-    <div class="max-w-md w-full bg-white p-8 rounded-[3rem] shadow-2xl text-center relative mt-6">
+    <div class="max-w-md w-full bg-white p-10 rounded-[3rem] shadow-xl text-center relative border border-slate-50">
         
-        <div id="streak-container" class="absolute -top-6 left-1/2 -translate-x-1/2 bg-white px-6 py-2 rounded-full shadow-lg border border-orange-100 flex items-center gap-2 transition-all duration-500 opacity-0 translate-y-4 font-light">
+        <div id="streak-container" class="absolute -top-6 left-1/2 -translate-x-1/2 bg-white px-6 py-2 rounded-full shadow-md border border-orange-100 flex items-center gap-2 transition-all duration-500 opacity-0 translate-y-4 font-light">
             <span class="text-xl">🔥</span>
             <span id="streak-count" class="font-medium text-orange-500 text-xl italic">0</span>
-            <span class="text-xs text-slate-400 uppercase tracking-widest">Ratxa</span>
+            <span class="text-xs text-slate-400 uppercase tracking-widest font-bold">Ratxa</span>
         </div>
 
-        <div class="mb-8">
-            <h1 class="text-3xl font-black text-slate-800 tracking-tight uppercase">
+        <div class="mb-10">
+            <h1 class="text-3xl font-black text-slate-800 tracking-tight italic uppercase">
                 VERB<span class="text-indigo-600">MASTER</span>
             </h1>
-            <p id="progres" class="text-slate-400 text-[10px] font-medium uppercase tracking-[0.3em] italic mt-1">
-                Iniciant...
-            </p>
+            <p id="progres" class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em] italic mt-2">Iniciant...</p>
         </div>
 
         <div id="pantalla-joc" style="display: none;">
-            <div class="bg-indigo-600 text-white p-8 rounded-[2.5rem] mb-8 shadow-xl relative overflow-hidden">
-                <p class="text-[10px] uppercase tracking-[0.2em] opacity-70 mb-2 font-medium">Traducció</p>
-                <h2 id="verb-catala" class="text-3xl font-normal tracking-tight">---</h2>
+            <div class="bg-indigo-600 text-white p-10 rounded-[2.5rem] mb-10 relative overflow-hidden">
+                <p class="text-[10px] uppercase tracking-[0.2em] opacity-70 mb-2 font-bold">Traducció</p>
+                <h2 id="verb-catala" class="text-4xl font-normal italic tracking-tight">---</h2>
             </div>
 
             <div class="space-y-4">
-                <input type="text" id="ans-i" placeholder="Infinitiu" class="w-full border border-slate-100 p-4 rounded-2xl text-center text-xl font-light outline-none focus:border-indigo-300 transition-all shadow-sm">
-                <input type="text" id="ans-s" placeholder="Past Simple" class="w-full border border-slate-100 p-4 rounded-2xl text-center text-xl font-light outline-none focus:border-indigo-300 transition-all shadow-sm">
-                <input type="text" id="ans-p" placeholder="Past Participle" class="w-full border border-slate-100 p-4 rounded-2xl text-center text-xl font-light outline-none focus:border-indigo-300 transition-all shadow-sm">
+                <input type="text" id="ans-i" placeholder="Infinitiu" autocomplete="off" class="input-normal w-full border-2 p-5 rounded-2xl text-center text-xl font-light transition-all">
+                <input type="text" id="ans-s" placeholder="Past Simple" autocomplete="off" class="input-normal w-full border-2 p-5 rounded-2xl text-center text-xl font-light transition-all">
+                <input type="text" id="ans-p" placeholder="Past Participle" autocomplete="off" class="input-normal w-full border-2 p-5 rounded-2xl text-center text-xl font-light transition-all">
                 
-                <button id="btnComprovar" class="w-full bg-indigo-600 text-white py-5 rounded-2xl font-light text-xl hover:bg-indigo-700 shadow-xl transition-all tracking-widest uppercase">Comprovar</button>
+                <button id="btnComprovar" class="w-full bg-indigo-600 text-white py-5 rounded-2xl font-bold text-lg hover:bg-indigo-700 transition-all tracking-[0.2em] uppercase mt-4">Comprovar</button>
             </div>
         </div>
-
         <div class="mt-10 pt-6 border-t border-slate-50 flex justify-between items-center text-[10px] font-medium text-slate-300 tracking-widest">
-            <button onclick="location.reload()" class="hover:text-indigo-600 transition-colors"> Reiniciar</button>
-            <a href="gestio.html" class="hover:text-indigo-600 transition-colors decoration-1"> Verbs</a>
+            <button onclick="location.reload()" class="hover:text-indigo-600 transition-colors"> RESET</button>
+            <a href="gestio.html" class="hover:text-indigo-600 transition-colors decoration-1"> AFEGIR</a>
         </div>
     </div>
 
@@ -70,46 +87,44 @@
         let dadesVerbs = [];
         let verbEnPantalla = {};
         let racha = 0;
-        let esCorrecteUltim = false;
 
         async function inicialitzar() {
-            if (!window.supabase) {
-                setTimeout(inicialitzar, 200);
-                return;
-            }
-            if (!clientSupa) clientSupa = window.supabase.createClient(URL_S, KEY_S);
-
+            if (!window.supabase) { setTimeout(inicialitzar, 200); return; }
+            clientSupa = window.supabase.createClient(URL_S, KEY_S);
             try {
                 const { data, error } = await clientSupa.from('verbs').select('*');
                 if (error) throw error;
                 dadesVerbs = data;
-                document.getElementById('progres').innerText = `${data.length} verbs preparats`;
+                document.getElementById('progres').innerText = `${data.length} verbs carregats`;
                 document.getElementById('pantalla-joc').style.display = 'block';
-                carregarPregunta(true);
-            } catch (err) {
-                document.getElementById('progres').innerText = "❌ Error de xarxa";
-            }
+                nouVerb();
+            } catch (err) { document.getElementById('progres').innerText = "❌ Error connexió"; }
         }
 
-        function carregarPregunta(esNouVerb) {
-            if (esNouVerb) {
-                verbEnPantalla = dadesVerbs[Math.floor(Math.random() * dadesVerbs.length)];
-                document.getElementById('verb-catala').innerText = verbEnPantalla.traduccio;
-                ['ans-i', 'ans-s', 'ans-p'].forEach(id => document.getElementById(id).value = '');
-            }
+        function nouVerb() {
+            verbEnPantalla = dadesVerbs[Math.floor(Math.random() * dadesVerbs.length)];
+            document.getElementById('verb-catala').innerText = verbEnPantalla.traduccio;
             
-            const v1 = document.getElementById('ans-i');
-            const v2 = document.getElementById('ans-s');
-            const v3 = document.getElementById('ans-p');
-
-            if (v1.value.trim().toLowerCase() !== verbEnPantalla.infinitiu.toLowerCase()) v1.focus();
-            else if (v2.value.trim().toLowerCase() !== verbEnPantalla.past_simple.toLowerCase()) v2.focus();
-            else v3.focus();
-
-            dibuixarRacha();
+            ['ans-i', 'ans-s', 'ans-p'].forEach(id => {
+                const el = document.getElementById(id);
+                el.value = '';
+                resetEstil(el);
+            });
+            document.getElementById('ans-i').focus();
+            actualitzarStreak();
         }
 
-        function dibuixarRacha() {
+        function resetEstil(el) {
+            el.classList.remove('input-error');
+            el.classList.add('input-normal');
+        }
+
+        function posarVermell(el) {
+            el.classList.remove('input-normal');
+            el.classList.add('input-error');
+        }
+
+        function actualitzarStreak() {
             const cont = document.getElementById('streak-container');
             const num = document.getElementById('streak-count');
             if (racha > 0) {
@@ -120,60 +135,49 @@
             }
         }
 
-        function avaluar() {
-            const v1 = document.getElementById('ans-i').value.trim().toLowerCase();
-            const v2 = document.getElementById('ans-s').value.trim().toLowerCase();
-            const v3 = document.getElementById('ans-p').value.trim().toLowerCase();
+        function comprovar() {
+            const v1 = document.getElementById('ans-i');
+            const v2 = document.getElementById('ans-s');
+            const v3 = document.getElementById('ans-p');
 
-            const c1 = v1 === verbEnPantalla.infinitiu.toLowerCase();
-            const c2 = v2 === verbEnPantalla.past_simple.toLowerCase();
-            const c3 = v3 === verbEnPantalla.past_participle.toLowerCase();
-            
-            esCorrecteUltim = (c1 && c2 && c3);
+            const ok1 = v1.value.trim().toLowerCase() === verbEnPantalla.infinitiu.toLowerCase();
+            const ok2 = v2.value.trim().toLowerCase() === verbEnPantalla.past_simple.toLowerCase();
+            const ok3 = v3.value.trim().toLowerCase() === verbEnPantalla.past_participle.toLowerCase();
 
-            const modal = document.getElementById('modal-alerta');
-            const icona = document.getElementById('alerta-icona');
-            const titol = document.getElementById('alerta-titol');
-            const msg = document.getElementById('alerta-missatge');
-
-            if (esCorrecteUltim) {
+            if (ok1 && ok2 && ok3) {
                 racha++;
-                modal.style.borderColor = "#22c55e";
-                icona.innerText = "✨";
-                titol.innerText = "Molt bé!";
-                titol.style.color = "#22c55e";
-                msg.innerText = "Passem al següent.";
+                nouVerb();
             } else {
                 racha = 0;
-                modal.style.borderColor = "#ef4444";
-                icona.innerText = "🤔";
-                titol.innerText = "Revisa-ho...";
-                titol.style.color = "#ef4444";
-                msg.innerText = "Hi ha algun error en les formes.";
+                actualitzarStreak();
+                
+                // Prioritat de focus i marca d'error
+                if (!ok1) { posarVermell(v1); v1.focus(); } else { resetEstil(v1); }
+                if (!ok2) { posarVermell(v2); if (ok1) v2.focus(); } else { resetEstil(v2); }
+                if (!ok3) { posarVermell(v3); if (ok1 && ok2) v3.focus(); } else { resetEstil(v3); }
             }
-
-            document.getElementById('overlay').classList.remove('hidden');
-            modal.classList.remove('hidden');
-            document.getElementById('btn-seguent').focus();
         }
 
-        document.getElementById('btnComprovar').onclick = avaluar;
-        document.getElementById('btn-seguent').onclick = function() {
-            document.getElementById('modal-alerta').classList.add('hidden');
-            document.getElementById('overlay').classList.add('hidden');
-            carregarPregunta(esCorrecteUltim);
-        };
+        // Lògica de validació al perdre el focus (Blur)
+        const inputsConfig = [
+            { id: 'ans-i', camp: 'infinitiu' },
+            { id: 'ans-s', camp: 'past_simple' },
+            { id: 'ans-p', camp: 'past_participle' }
+        ];
 
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                if (!document.getElementById('modal-alerta').classList.contains('hidden')) {
-                    document.getElementById('btn-seguent').click();
-                } else {
-                    avaluar();
+        inputsConfig.forEach(item => {
+            const el = document.getElementById(item.id);
+            el.addEventListener('blur', function() {
+                if (this.value.trim().toLowerCase() === verbEnPantalla[item.camp].toLowerCase()) {
+                    resetEstil(this);
                 }
-            }
+            });
+            el.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') comprovar();
+            });
         });
 
+        document.getElementById('btnComprovar').onclick = comprovar;
         window.onload = inicialitzar;
     </script>
 </body>

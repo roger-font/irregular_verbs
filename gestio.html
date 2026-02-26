@@ -14,7 +14,7 @@
                 VERB<span class="text-indigo-600">MANAGER</span>
             </h1>
             <a href="index.html" class="bg-white text-indigo-600 px-6 py-2 rounded-xl font-bold shadow-sm border border-indigo-100 hover:bg-indigo-50 transition-all uppercase text-xs tracking-widest">
-                ← Tornar al Joc
+                ← TORNAR
             </a>
         </div>
 
@@ -82,12 +82,13 @@
                         <td class="p-6 text-center text-slate-500 font-light text-md">${v.past_participle}</td>
                         <td class="p-6 text-center italic text-slate-400 font-light text-md">${v.traduccio}</td>
                         <td class="p-6">
-                            <div class="flex justify-center gap-2">
-                                <button onclick="prepararEdicio('${v.id}', '${v.infinitiu}', '${v.past_simple}', '${v.past_participle}', '${v.traduccio}')" 
-                                    class="text-indigo-500 hover:bg-indigo-500 hover:text-white border border-indigo-100 px-3 py-1 rounded-xl text-[10px] font-black transition-all uppercase tracking-tighter">Editar</button>
-                                <button onclick="borrarVerb(${v.id})" 
-                                    class="text-rose-400 hover:bg-rose-500 hover:text-white border border-rose-50 px-3 py-1 rounded-xl text-[10px] font-black transition-all uppercase tracking-tighter">Eliminar</button>
-                            </div>
+
+                    <div class="flex justify-center gap-2">
+    <button onclick="prepararEdicio('${v.id}', '${v.infinitiu}', '${v.past_simple}', '${v.past_participle}', '${v.traduccio}')" 
+            class="text-indigo-500 hover:bg-indigo-500 hover:text-white border border-indigo-100 px-3 py-1 rounded-xl text-[10px] font-normal transition-all uppercase tracking-tighter">Editar</button>
+    <button onclick="borrarVerb(${v.id})" 
+            class="text-rose-400 hover:bg-rose-500 hover:text-white border border-rose-50 px-3 py-1 rounded-xl text-[10px] font-normal transition-all uppercase tracking-tighter">Eliminar</button>
+</div>
                         </td>
                     </tr>`;
             });
