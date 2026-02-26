@@ -2,153 +2,148 @@
 <html lang="ca">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verb Master - Joc</title>
+    <title>Gestió de Verbs - Panell Professional</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        /* Animació per a l'alerta */
-        @keyframes popIn {
-            0% { transform: translate(-50%, -60%) scale(0.9); opacity: 0; }
-            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-        }
-        .custom-alert {
-            animation: popIn 0.3s ease-out forwards;
-        }
-    </style>
 </head>
-<body class="bg-indigo-50 min-h-screen flex items-center justify-center p-4 font-sans">
+<body class="bg-slate-100 p-4 md:p-8 font-sans">
 
-    <div id="overlay" class="fixed inset-0 bg-indigo-900/40 backdrop-blur-sm z-40 hidden"></div>
-    <div id="modal-alerta" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-8 rounded-3xl shadow-2xl z-50 w-[90%] max-w-sm text-center hidden custom-alert border-4">
-        <div id="alerta-icona" class="text-6xl mb-4"></div>
-        <h2 id="alerta-titol" class="text-3xl font-black mb-2 italic"></h2>
-        <p id="alerta-missatge" class="text-slate-600 text-lg leading-relaxed mb-6"></p>
-        <button id="btn-seguent" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-xl hover:bg-indigo-700 shadow-lg transition-all focus:ring-4 focus:ring-indigo-200 outline-none">CONTINUAR</button>
-    </div>
-
-    <div class="max-w-md w-full bg-white p-8 rounded-3xl shadow-2xl text-center">
-        <h1 class="text-3xl font-black text-indigo-600 mb-2 tracking-tighter italic">VERB MASTER</h1>
-        <p id="progres" class="text-slate-400 text-xs mb-6 font-bold uppercase tracking-widest">Connectant...</p>
-
-        <div id="pantalla-joc" style="display: none;">
-            <div class="bg-indigo-600 text-white p-8 rounded-[2.5rem] mb-8 shadow-xl relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-10 -mt-10"></div>
-                <p class="text-[10px] uppercase tracking-[0.2em] opacity-70 mb-2 font-black">Traducció</p>
-                <h2 id="verb-catala" class="text-4xl font-black italic">---</h2>
-            </div>
-
-            <div class="space-y-4">
-                <input type="text" id="ans-i" tabindex="1" placeholder="Infinitiu" class="w-full border-2 border-slate-100 p-4 rounded-2xl text-center text-xl font-bold outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50/50 transition-all placeholder:text-slate-200">
-                <input type="text" id="ans-s" tabindex="2" placeholder="Past Simple" class="w-full border-2 border-slate-100 p-4 rounded-2xl text-center text-xl font-bold outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50/50 transition-all placeholder:text-slate-200">
-                <input type="text" id="ans-p" tabindex="3" placeholder="Past Participle" class="w-full border-2 border-slate-100 p-4 rounded-2xl text-center text-xl font-bold outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50/50 transition-all placeholder:text-slate-200">
-                
-                <button id="btnComprovar" tabindex="4" class="w-full bg-indigo-600 text-white py-5 rounded-2xl font-black text-xl hover:bg-indigo-700 shadow-xl shadow-indigo-100 active:scale-[0.98] transition-all outline-none focus:ring-4 focus:ring-indigo-200">COMPROVAR</button>
-            </div>
+    <div class="max-w-5xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-black text-slate-800 tracking-tight">VERB<span class="text-indigo-600">MANAGER</span></h1>
+            <a href="index.html" class="bg-white text-indigo-600 px-4 py-2 rounded-xl font-bold shadow-sm border border-indigo-100 hover:bg-indigo-50 transition-all">← Anar al Joc</a>
         </div>
 
-        <div class="mt-10 pt-6 border-t border-slate-50 flex justify-between items-center text-[10px] font-bold text-slate-300 uppercase tracking-widest">
-            <button onclick="location.reload()" class="hover:text-indigo-600 transition-colors">🔄 Reiniciar</button>
-            <a href="gestio.html" class="hover:text-indigo-600 transition-colors underline decoration-2">⚙️ Gestionar Verbs</a>
+        <div class="bg-white p-6 rounded-2xl shadow-md border border-slate-200 mb-8">
+            <h2 id="titol-form" class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Afegir Nou Verb</h2>
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+                <input type="hidden" id="edit-id">
+                <input type="text" id="in-i" placeholder="Infinitiu" class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none focus:border-indigo-400 transition-all">
+                <input type="text" id="in-s" placeholder="Past Simple" class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none focus:border-indigo-400 transition-all">
+                <input type="text" id="in-p" placeholder="Past Participle" class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none focus:border-indigo-400 transition-all">
+                <input type="text" id="in-t" placeholder="Traducció" class="w-full border-2 border-slate-100 p-3 rounded-xl outline-none focus:border-indigo-400 transition-all">
+                <button id="btnGuardar" class="w-full bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all">GUARDAR</button>
+            </div>
+            <button id="btnCancelar" class="hidden mt-3 text-xs text-slate-400 underline italic">Cancel·lar edició</button>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-100">
+                        <th class="p-4 text-xs font-black text-slate-400 uppercase">Infinitiu</th>
+                        <th class="p-4 text-xs font-black text-slate-400 uppercase">Past Simple</th>
+                        <th class="p-4 text-xs font-black text-slate-400 uppercase">Past Participle</th>
+                        <th class="p-4 text-xs font-black text-slate-400 uppercase">Traducció</th>
+                        <th class="p-4 text-xs font-black text-slate-400 uppercase text-right">Accions</th>
+                    </tr>
+                </thead>
+                <tbody id="taulaVerbs" class="divide-y divide-slate-50">
+                    </tbody>
+            </table>
         </div>
     </div>
 
     <script>
-        const SUPA_URL = 'https://faatliqxkgscjxgclccf.supabase.co';
-        const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
-        const supabase = window.supabase.createClient(SUPA_URL, SUPA_KEY);
-
-        let llistaVerbs = [];
-        let verbActual = {};
-
-        async function carregarDades() {
-            const { data, error } = await supabase.from('verbs').select('*');
-            if (error || !data || data.length === 0) {
-                document.getElementById('progres').innerText = "⚠️ Base de dades buida";
+        window.onload = function() {
+            if (!window.supabase || !window.supabase.createClient) {
+                setTimeout(window.onload, 500);
                 return;
             }
-            llistaVerbs = data;
-            document.getElementById('progres').innerText = `${data.length} verbs disponibles`;
-            document.getElementById('pantalla-joc').style.display = 'block';
-            nouVerb();
-        }
 
-        function nouVerb() {
-            verbActual = llistaVerbs[Math.floor(Math.random() * llistaVerbs.length)];
-            document.getElementById('verb-catala').innerText = verbActual.traduccio;
-            
-            // Netejar i focus
-            const inputs = ['ans-i', 'ans-s', 'ans-p'];
-            inputs.forEach(id => document.getElementById(id).value = '');
-            document.getElementById('ans-i').focus();
-        }
+            const SUPA_URL = 'https://faatliqxkgscjxgclccf.supabase.co';
+            const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
+            const supabase = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 
-        function mostrarAlerta(correcte) {
-            const modal = document.getElementById('modal-alerta');
-            const overlay = document.getElementById('overlay');
-            const titol = document.getElementById('alerta-titol');
-            const msg = document.getElementById('alerta-missatge');
-            const icona = document.getElementById('alerta-icona');
-
-            if (correcte) {
-                modal.classList.add('border-green-500');
-                modal.classList.remove('border-red-500');
-                icona.innerText = "✨";
-                titol.innerText = "EXCEL·LENT!";
-                titol.className = "text-3xl font-black mb-2 italic text-green-500";
-                msg.innerText = "Ho has encertat tot!";
-            } else {
-                modal.classList.add('border-red-500');
-                modal.classList.remove('border-green-500');
-                icona.innerText = "❌";
-                titol.innerText = "OH, NO!";
-                titol.className = "text-3xl font-black mb-2 italic text-red-500";
-                msg.innerHTML = `La resposta era:<br><span class="font-black text-slate-800 text-xl">${verbActual.infinitiu} - ${verbActual.past_simple} - ${verbActual.past_participle}</span>`;
+            async function actualitzarTaula() {
+                const { data, error } = await supabase.from('verbs').select('*').order('infinitiu');
+                if (error) return;
+                
+                const tbody = document.getElementById('taulaVerbs');
+                tbody.innerHTML = '';
+                
+                data.forEach(v => {
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-indigo-50/30 transition-colors">
+                            <td class="p-4 font-bold text-slate-700 text-lg">${v.infinitiu}</td>
+                            <td class="p-4 text-slate-600">${v.past_simple}</td>
+                            <td class="p-4 text-slate-600">${v.past_participle}</td>
+                            <td class="p-4 italic text-slate-400">${v.traduccio}</td>
+                            <td class="p-4 text-right space-x-2">
+                                <button onclick="prepararEdicio('${v.id}', '${v.infinitiu}', '${v.past_simple}', '${v.past_participle}', '${v.traduccio}')" class="text-indigo-500 hover:bg-indigo-500 hover:text-white border border-indigo-200 px-3 py-1 rounded-lg text-xs font-bold transition-all uppercase">Editar</button>
+                                <button onclick="borrarVerb(${v.id})" class="text-rose-400 hover:bg-rose-500 hover:text-white border border-rose-100 px-3 py-1 rounded-lg text-xs font-bold transition-all uppercase">Eliminar</button>
+                            </td>
+                        </tr>`;
+                });
             }
 
-            overlay.classList.remove('hidden');
-            modal.classList.remove('hidden');
-            document.getElementById('btn-seguent').focus();
-        }
+            // FUNCIÓ PER PREPARAR L'EDICIÓ
+            window.prepararEdicio = function(id, i, s, p, t) {
+                document.getElementById('edit-id').value = id;
+                document.getElementById('in-i').value = i;
+                document.getElementById('in-s').value = s;
+                document.getElementById('in-p').value = p;
+                document.getElementById('in-t').value = t;
+                
+                document.getElementById('titol-form').innerText = "Editant verb...";
+                document.getElementById('btnGuardar').innerText = "ACTUALITZAR";
+                document.getElementById('btnCancelar').classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
 
-        function tancarAlerta() {
-            document.getElementById('modal-alerta').classList.add('hidden');
-            document.getElementById('overlay').classList.add('hidden');
-            nouVerb();
-        }
+            // FUNCIÓ PER CANCEL·LAR EDICIÓ
+            document.getElementById('btnCancelar').onclick = function() {
+                netejarFormulari();
+            };
 
-        function comprovar() {
-            const i = document.getElementById('ans-i').value.trim().toLowerCase();
-            const s = document.getElementById('ans-s').value.trim().toLowerCase();
-            const p = document.getElementById('ans-p').value.trim().toLowerCase();
-
-            const esCorrecte = (i === verbActual.infinitiu.toLowerCase() && 
-                               s === verbActual.past_simple.toLowerCase() && 
-                               p === verbActual.past_participle.toLowerCase());
-            
-            mostrarAlerta(esCorrecte);
-        }
-
-        // CONTROL DE TECLAT
-        // 1. Enter per comprovar en qualsevol input
-        ['ans-i', 'ans-s', 'ans-p'].forEach(id => {
-            document.getElementById(id).addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') comprovar();
-            });
-        });
-
-        // 2. Botó comprovar
-        document.getElementById('btnComprovar').onclick = comprovar;
-
-        // 3. Botó continuar de l'alerta (Enter o Clic)
-        document.getElementById('btn-seguent').onclick = tancarAlerta;
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !document.getElementById('modal-alerta').classList.contains('hidden')) {
-                tancarAlerta();
+            function netejarFormulari() {
+                document.getElementById('edit-id').value = '';
+                document.getElementById('in-i').value = '';
+                document.getElementById('in-s').value = '';
+                document.getElementById('in-p').value = '';
+                document.getElementById('in-t').value = '';
+                document.getElementById('titol-form').innerText = "Afegir Nou Verb";
+                document.getElementById('btnGuardar').innerText = "GUARDAR";
+                document.getElementById('btnCancelar').classList.add('hidden');
             }
-        });
 
-        window.onload = carregarDades;
+            window.borrarVerb = async function(id) {
+                if (!confirm("Vols eliminar aquest verb?")) return;
+                const { error } = await supabase.from('verbs').delete().eq('id', id);
+                if (!error) actualitzarTaula();
+            };
+
+            document.getElementById('btnGuardar').onclick = async function() {
+                const id = document.getElementById('edit-id').value;
+                const i = document.getElementById('in-i').value.trim();
+                const s = document.getElementById('in-s').value.trim();
+                const p = document.getElementById('in-p').value.trim();
+                const t = document.getElementById('in-t').value.trim();
+
+                if (!i || !s || !p || !t) return alert("⚠️ Omple tots els camps!");
+
+                const verbData = { infinitiu: i, past_simple: s, past_participle: p, traduccio: t };
+
+                let error;
+                if (id) {
+                    // Si hi ha ID, actualitzem (Update)
+                    const res = await supabase.from('verbs').update(verbData).eq('id', id);
+                    error = res.error;
+                } else {
+                    // Si no hi ha ID, creem (Insert)
+                    const res = await supabase.from('verbs').insert([verbData]);
+                    error = res.error;
+                }
+
+                if (error) alert("Error: " + error.message);
+                else {
+                    netejarFormulari();
+                    actualitzarTaula();
+                }
+            };
+
+            actualitzarTaula();
+        };
     </script>
 </body>
 </html>
