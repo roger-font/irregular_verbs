@@ -12,11 +12,6 @@
             100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
         .custom-alert { animation: popIn 0.3s ease-out forwards; }
-        @keyframes bump {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-        .streak-bump { animation: bump 0.3s ease-out; }
     </style>
 </head>
 <body class="bg-indigo-50 min-h-screen flex items-center justify-center p-4 font-sans text-slate-700">
@@ -37,12 +32,18 @@
             <span class="text-xs text-slate-400 uppercase tracking-widest">Ratxa</span>
         </div>
 
-        <h1 class="text-2xl font-light text-indigo-600 mb-2 tracking-widest uppercase">Verb Master</h1>
-        <p id="progres" class="text-slate-400 text-[10px] mb-6 font-medium uppercase tracking-[0.3em] italic">Carregant...</p>
+        <div class="mb-8">
+            <h1 class="text-3xl font-black text-slate-800 tracking-tight italic uppercase">
+                VERB<span class="text-indigo-600">MASTER</span>
+            </h1>
+            <p id="progres" class="text-slate-400 text-[10px] font-medium uppercase tracking-[0.3em] italic mt-1">
+                Iniciant...
+            </p>
+        </div>
 
         <div id="pantalla-joc" style="display: none;">
             <div class="bg-indigo-600 text-white p-8 rounded-[2.5rem] mb-8 shadow-xl relative overflow-hidden">
-                <p class="text-[10px] uppercase tracking-[0.2em] opacity-70 mb-2">Traducció</p>
+                <p class="text-[10px] uppercase tracking-[0.2em] opacity-70 mb-2 font-medium">Traducció</p>
                 <h2 id="verb-catala" class="text-3xl font-normal italic tracking-tight">---</h2>
             </div>
 
@@ -56,8 +57,8 @@
         </div>
 
         <div class="mt-10 pt-6 border-t border-slate-50 flex justify-between items-center text-[10px] font-medium text-slate-300 uppercase tracking-widest">
-            <button onclick="location.reload()" class="hover:font-light text-indigo-600 mb-2 tracking-widest uppercase"> Reiniciar</button>
-            <a href="gestio.html" class="hover:font-light text-indigo-600 mb-2 tracking-widest uppercase"> Verbs</a>
+            <button onclick="location.reload()" class="hover:text-indigo-600 transition-colors"> Reiniciar</button>
+            <a href="gestio.html" class="hover:text-indigo-600 transition-colors decoration-1"> Verbs</a>
         </div>
     </div>
 
@@ -82,7 +83,7 @@
                 const { data, error } = await clientSupa.from('verbs').select('*');
                 if (error) throw error;
                 dadesVerbs = data;
-                document.getElementById('progres').innerText = `${data.length} verbs actius`;
+                document.getElementById('progres').innerText = `${data.length} verbs preparats`;
                 document.getElementById('pantalla-joc').style.display = 'block';
                 carregarPregunta(true);
             } catch (err) {
@@ -97,7 +98,6 @@
                 ['ans-i', 'ans-s', 'ans-p'].forEach(id => document.getElementById(id).value = '');
             }
             
-            // Si falles, enfoquem el primer que estigui malament
             const v1 = document.getElementById('ans-i');
             const v2 = document.getElementById('ans-s');
             const v3 = document.getElementById('ans-p');
@@ -142,14 +142,14 @@
                 icona.innerText = "✨";
                 titol.innerText = "Molt bé!";
                 titol.style.color = "#22c55e";
-                msg.innerText = "Tot correcte.";
+                msg.innerText = "Passem al següent.";
             } else {
                 racha = 0;
                 modal.style.borderColor = "#ef4444";
                 icona.innerText = "🤔";
                 titol.innerText = "Revisa-ho...";
                 titol.style.color = "#ef4444";
-                msg.innerText = "Alguna forma no és correcta. Torna-ho a intentar!";
+                msg.innerText = "Hi ha algun error en les formes.";
             }
 
             document.getElementById('overlay').classList.remove('hidden');
