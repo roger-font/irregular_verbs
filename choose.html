@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verb Choose - Joc</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .btn-opcio {
+            transition: all 0.2s ease;
+            border: 2px solid #f1f5f9;
+        }
+        .btn-opcio:hover:not(:disabled) {
+            border-color: #6366f1;
+            background-color: #f8fafc;
+        }
+        .correcte {
+            background-color: #22c55e !important;
+            border-color: #22c55e !important;
+            color: white !important;
+        }
+        .incorrecte {
+            background-color: #ef4444 !important;
+            border-color: #ef4444 !important;
+            color: white !important;
+        }
+    </style>
+</head>
+<body class="bg-indigo-50 min-h-screen flex items-center justify-center p-4 font-sans text-slate-700">
+
+    <div class="max-w-4xl w-full bg-white p-10 rounded-[3rem] shadow-xl text-center relative border border-slate-50">
+        
+        <div id="streak-container" class="absolute -top-6 left-1/2 -translate-x-1/2 bg-white px-6 py-2 rounded-full shadow-md border border-orange-100 flex items-center gap-2 transition-all duration-500 opacity-0 translate-y-4 font-light">
+            <span class="text-xl">🔥</span>
+            <span id="streak-count" class="font-medium text-orange-500 text-xl italic">0</span>
+            <span class="text-xs text-slate-400 uppercase tracking-widest font-bold">Ratxa</span>
+        </div>
+
+        <div class="mb-8">
+            <h1 class="text-3xl font-black text-slate-800 tracking-tight italic uppercase">
+                VERB<span class="text-indigo-600">CHOOSE</span>
+            </h1>
+            <p id="progres" class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em] italic mt-2">Carregant...</p>
+        </div>
+
+        <div id="pantalla-joc" style="display: none;">
+            <div class="bg-indigo-600 text-white p-8 rounded-[2.5rem] mb-10 relative">
+                <p class="text-[10px] uppercase tracking-[0.2em] opacity-70 mb-1 font-bold">Infinitiu</p>
+                <h2 id="verb-infinitiu" class="text-4xl font-normal italic tracking-tight">---</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div id="col-past-simple" class="space-y-3">
+                    <p class="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-4">Past Simple</p>
+                    <div class="opcions space-y-2"></div>
+                </div>
+
+                <div id="col-past-participle" class="space-y-3">
+                    <p class="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-4">Past Participle</p>
+                    <div class="opcions space-y-2"></div>
+                </div>
+
+                <div id="col-traduccio" class="space-y-3">
+                    <p class="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-4">Traducció</p>
+                    <div class="opcions space-y-2"></div>
+                </div>
+            </div>
+
+            <button id="btnSeguent" disabled class="mt-12 w-full max-w-xs mx-auto bg-slate-100 text-slate-400 py-4 rounded-2xl font-bold text-lg transition-all tracking-[0.2em] uppercase cursor-not-allowed">
+                Següent Verb
+            </button>
+        </div>
+
+        <div class="mt-12 pt-6 border-t border-slate-50 flex justify-between items-center text-[10px] font-bold text-slate-300 uppercase tracking-widest">
+            <a href="index.html" class="hover:text-indigo-600 transition-colors"> MASTER</a>
+            <a href="gestio.html" class="hover:text-indigo-600 transition-colors">AFEGIR</a>
+        </div>
+    </div>
+
+    <script>
+    // 1. CONFIGURACIÓ I VARIABLES (Es mantenen igual)
+    const URL_S = 'https://faatliqxkgscjxgclccf.supabase.co';
+    const KEY_S = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhYXRsaXF4a2dzY2p4Z2NsY2NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMjA4NDAsImV4cCI6MjA4NzU5Njg0MH0.u_fW-dsXZqwkBhHx_t5j4ZBh8jUW-V892xZe1PEObj8';
+    
+    let clientSupa;
+    let dadesVerbs = [];
+    let verbEnPantalla = {};
+    let racha = 0;
+    let encertsActuals = { ps: false, pp: false, tr: false };
+
+    async function inicialitzar() {
+        if (!window.supabase) { setTimeout(inicialitzar, 200); return; }
+        clientSupa = window.supabase.createClient(URL_S, KEY_S);
+        try {
+            const { data, error } = await clientSupa.from('verbs').select('*');
+            if (error) throw error;
+            dadesVerbs = data;
+            document.getElementById('progres').innerText = `${data.length} verbs carregats`;
+            document.getElementById('pantalla-joc').style.display = 'block';
+            nouVerb();
+        } catch (err) { document.getElementById('progres').innerText = "❌ Error connexió"; }
+    }
+
+    // --- AQUÍ HAS DE POSAR EL NOU BLOC DE FUNCIONS ---
+
+    function crearDistraccionsAngles(paraula) {
+        let falses = new Set();
+        const p = paraula.toLowerCase();
+        falses.add(p + p.slice(-1));
+        if (p.length > 3) falses.add(p.slice(0, -1) + p.slice(-1).repeat(2));
+        falses.add(p.replace(/a/g, 'e').replace(/i/g, 'a'));
+        falses.add(p.replace(/e/g, 'ee').replace(/o/g, 'ou'));
+        if (p.endsWith('en')) falses.add(p.replace('en', 'ed'));
+        else if (p.endsWith('ed')) falses.add(p.replace('ed', 'en'));
+        else {
+            falses.add(p + 'ed');
+            falses.add(p + 'en');
+        }
+        if (p.length > 3) falses.add(p.slice(0, -1));
+        let filtrat = Array.from(falses).filter(f => f !== p);
+        return filtrat.sort(() => 0.5 - Math.random()).slice(0, 3);
+    }
+
+    function crearDistraccionsTraduccio(correcta) {
+        let altres = dadesVerbs
+            .map(v => v.traduccio)
+            .filter(t => t.toLowerCase() !== correcta.toLowerCase());
+        return altres.sort(() => 0.5 - Math.random()).slice(0, 3);
+    }
+
+    function generarColumna(idContenidor, respostaCorrecta, clauEncert, esTraduccio = false) {
+        const contenidor = document.querySelector(`#${idContenidor} .opcions`);
+        contenidor.innerHTML = '';
+        let opcionsFalses = esTraduccio ? crearDistraccionsTraduccio(respostaCorrecta) : crearDistraccionsAngles(respostaCorrecta);
+        while (opcionsFalses.length < 3) opcionsFalses.push(respostaCorrecta + "s");
+        let opcionsTotals = [respostaCorrecta, ...opcionsFalses];
+        opcionsTotals.sort(() => 0.5 - Math.random());
+        opcionsTotals.forEach(text => {
+            const btn = document.createElement('button');
+            btn.innerText = text;
+            btn.className = "btn-opcio w-full p-4 rounded-2xl text-md font-light bg-white text-slate-600 outline-none";
+            btn.onclick = () => verificar(btn, text, respostaCorrecta, clauEncert, idContenidor);
+            contenidor.appendChild(btn);
+        });
+    }
+
+    function nouVerb() {
+        verbEnPantalla = dadesVerbs[Math.floor(Math.random() * dadesVerbs.length)];
+        document.getElementById('verb-infinitiu').innerText = verbEnPantalla.infinitiu;
+        encertsActuals = { ps: false, pp: false, tr: false };
+        const btnSeguent = document.getElementById('btnSeguent');
+        btnSeguent.disabled = true;
+        btnSeguent.className = "mt-12 w-full max-w-xs mx-auto bg-slate-100 text-slate-400 py-4 rounded-2xl font-bold text-lg transition-all tracking-[0.2em] uppercase cursor-not-allowed";
+        generarColumna('col-past-simple', verbEnPantalla.past_simple, 'ps', false);
+        generarColumna('col-past-participle', verbEnPantalla.past_participle, 'pp', false);
+        generarColumna('col-traduccio', verbEnPantalla.traduccio, 'tr', true);
+        actualitzarStreak();
+    }
+
+    // --- CONTINUA AMB LES FUNCIONS DE VERIFICACIÓ ---
+
+    function verificar(btn, triat, correcte, clauEncert, idContenidor) {
+        if (encertsActuals[clauEncert]) return;
+        if (triat === correcte) {
+            btn.classList.add('correcte');
+            encertsActuals[clauEncert] = true;
+            const totsBotons = document.querySelectorAll(`#${idContenidor} button`);
+            totsBotons.forEach(b => {
+                if (b !== btn) b.style.opacity = "0.5";
+                b.disabled = true;
+            });
+            comprovarSiTotAcabat();
+        } else {
+            btn.classList.add('incorrecte');
+            racha = 0;
+            actualitzarStreak();
+            setTimeout(() => btn.classList.remove('incorrecte'), 500);
+        }
+    }
+
+    function comprovarSiTotAcabat() {
+        if (encertsActuals.ps && encertsActuals.pp && encertsActuals.tr) {
+            const btnSeguent = document.getElementById('btnSeguent');
+            btnSeguent.disabled = false;
+            btnSeguent.className = "mt-12 w-full max-w-xs mx-auto bg-indigo-600 text-white py-4 rounded-2xl font-bold text-lg transition-all tracking-[0.2em] uppercase hover:bg-indigo-700 shadow-xl cursor-pointer";
+            racha++;
+            actualitzarStreak();
+        }
+    }
+
+    function actualitzarStreak() {
+        const cont = document.getElementById('streak-container');
+        const num = document.getElementById('streak-count');
+        if (racha > 0) {
+            cont.classList.remove('opacity-0', 'translate-y-4');
+            num.innerText = racha;
+        } else {
+            cont.classList.add('opacity-0', 'translate-y-4');
+        }
+    }
+
+    document.getElementById('btnSeguent').onclick = nouVerb;
+    window.onload = inicialitzar;
+</script>
+</body>
+</html>
